@@ -22,19 +22,21 @@ specification, stores the references between objects and data and saves the data
 to CDML"""
 
 
-from atom import atom
-from bond import bond
-from textatom import textatom
-from queryatom import queryatom
-from group import group
-from molecule import molecule
+from __future__ import absolute_import
+from .atom import atom
+from .bond import bond
+from .textatom import textatom
+from .queryatom import queryatom
+from .group import group
+from .molecule import molecule
 import types
-import dom_extensions as dom_ext
+from . import dom_extensions as dom_ext
 import xml.dom.minidom as dom
 import os.path
-import os_support
+from . import os_support
 
-from singleton_store import Store
+from .singleton_store import Store
+from six.moves import map
 
 
 
@@ -43,7 +45,7 @@ class external_data_manager( object):
   types = {'atom': (atom,group,textatom,queryatom),
            'bond': (bond,),
            'molecule': (molecule,),
-           'IntType': (types.IntType,),
+           'IntType': (int,),
            #'toplevel': ('molecule', 'arrow', 'plus', 'text', 'rect', 'oval', 'polygon', 'circle', 'square', 'reaction','polyline')
            }
            
@@ -70,7 +72,7 @@ class external_data_manager( object):
         #  Store.log( "could not load definition file: %s", message_type="error")
         
 
-    return self.definitions.keys()
+    return list(self.definitions.keys())
 
 
 
@@ -109,7 +111,7 @@ class external_data_manager( object):
 
 
   def get_definition_classes( self):
-    return self.definitions.keys()
+    return list(self.definitions.keys())
 
 
 
@@ -123,9 +125,9 @@ class external_data_manager( object):
       try:
         self.records[ dclass][ obj][ category] = self.convert_to_type( value, t)
       except ValueError:
-        raise ValueError, "the value '%s' type does not match the definition." % str( value)
+        raise ValueError("the value '%s' type does not match the definition." % str( value))
     else:
-      raise ValueError, "the value '%s' type does not match the definition." % str( value)
+      raise ValueError("the value '%s' type does not match the definition." % str( value))
     
 
 
@@ -139,23 +141,23 @@ class external_data_manager( object):
         elif category in self.definitions[dclass][obj.object_type]:
           return None
         else:
-          raise ValueError, "wrong category '%s' for type '%s' in dclass '%s'" % ( category, obj.object_type, dclass)
-      elif obj.object_type in self.definitions[dclass].keys():
+          raise ValueError("wrong category '%s' for type '%s' in dclass '%s'" % ( category, obj.object_type, dclass))
+      elif obj.object_type in list(self.definitions[dclass].keys()):
         return None
       else:
-        raise ValueError, "wrong object type '%s' for dclass '%s'" % ( obj.object_type, dclass)        
-    raise ValueError, "not registered dclass: %s" % dclass
+        raise ValueError("wrong object type '%s' for dclass '%s'" % ( obj.object_type, dclass))        
+    raise ValueError("not registered dclass: %s" % dclass)
       
 
 
   def value_matches_definition( self, dclass, obj, category, value):
     """checks if the value is of the type provided in definition""" 
-    if not dclass in self.records.keys():
-      raise ValueError, "not registered dclass: %s" % dclass
-    if not obj.object_type in self.definitions[dclass].keys():
-      raise ValueError, "wrong object type '%s' for dclass '%s'" % ( obj.object_type, dclass)
-    if not category in self.definitions[dclass][obj.object_type].keys():
-      raise ValueError, "wrong category '%s' for type '%s' in dclass '%s'" % ( category, obj.object_type, dclass)
+    if not dclass in list(self.records.keys()):
+      raise ValueError("not registered dclass: %s" % dclass)
+    if not obj.object_type in list(self.definitions[dclass].keys()):
+      raise ValueError("wrong object type '%s' for dclass '%s'" % ( obj.object_type, dclass))
+    if not category in list(self.definitions[dclass][obj.object_type].keys()):
+      raise ValueError("wrong category '%s' for type '%s' in dclass '%s'" % ( category, obj.object_type, dclass))
 
     t = self.definitions[ dclass][ obj.object_type][ category]['type']
     if self.conforms_to_type( value, t):
@@ -165,7 +167,7 @@ class external_data_manager( object):
     
 
   def conforms_to_type( self, value, t):
-    if type( t) == types.ListType:
+    if type( t) == list:
       for v2 in t:
         if value == v2:
           return True
@@ -173,7 +175,7 @@ class external_data_manager( object):
 
     v = self.convert_to_type( value, t)
     if t in self.types:
-      if filter( None, [isinstance( v, tt) for tt in self.types[t]]):
+      if [_f for _f in [isinstance( v, tt) for tt in self.types[t]] if _f]:
         return True
       else:
         return False
@@ -189,7 +191,7 @@ class external_data_manager( object):
 
 
   def get_package( self, doc):
-    if not self.records or sum( map( len, self.records.values())) == 0:
+    if not self.records or sum( map( len, list(self.records.values()))) == 0:
       return None
     e = doc.createElement( 'external-data')
     for dclass in self.records:
@@ -211,7 +213,7 @@ class external_data_manager( object):
     files, use read_data_definition instead"""
     for ecls in dom_ext.simpleXPathSearch( root, "class"):
       cls = ecls.getAttribute( 'name')
-      if not cls in self.records.keys():
+      if not cls in list(self.records.keys()):
         self.records[ cls] = {}
       for eobj in dom_ext.simpleXPathSearch( ecls, "object"):
         obj = Store.id_manager.get_object_with_id( eobj.getAttribute( 'ref'))
@@ -224,7 +226,7 @@ class external_data_manager( object):
 
 
   def convert_to_type( self, value, vtype):
-    if type( vtype) == types.ListType:
+    if type( vtype) == list:
       return value
     if vtype in types.__dict__:
       t = self.expand_type( vtype)[0]
@@ -240,8 +242,8 @@ class external_data_manager( object):
 
 
 
-from Tkinter import Entry
-import Pmw
+from six.moves.tkinter import Entry
+from . import Pmw
 
 
 class ExternalDataEntry( Entry, object):

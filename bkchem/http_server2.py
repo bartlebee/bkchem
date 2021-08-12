@@ -21,32 +21,34 @@
 """here is the http server that server data from application on demand"""
 
 
-import BaseHTTPServer
-import xml_writer
+from __future__ import absolute_import
+from __future__ import print_function
+import six.moves.BaseHTTPServer
+from . import xml_writer
 import string
-import xml_serializer
+from . import xml_serializer
 import xml.dom.minidom as dom
 import time
 import os.path
-import urlparse
+import six.moves.urllib.parse
 
-import oasa_bridge
+from . import oasa_bridge
 
-from singleton_store import Store
-
-
+from .singleton_store import Store
 
 
-class bkchem_http_handler( BaseHTTPServer.BaseHTTPRequestHandler):
+
+
+class bkchem_http_handler( six.moves.BaseHTTPServer.BaseHTTPRequestHandler):
 
   dirs = ('smiles','inchi','gtml','images')
 
   def __init__( self, *args):
-    BaseHTTPServer.BaseHTTPRequestHandler.__init__( self, *args)
+    six.moves.BaseHTTPServer.BaseHTTPRequestHandler.__init__( self, *args)
 
   def do_GET_fallback( self):
-    protocol, address, path, parameters, query, fragment = urlparse.urlparse( self.path)
-    path_list = filter( None, path.split("/"))
+    protocol, address, path, parameters, query, fragment = six.moves.urllib.parse.urlparse( self.path)
+    path_list = [_f for _f in path.split("/") if _f]
 
     if len( path_list) == 1 or path_list[0] not in self.dirs:
       # these are static pages
@@ -72,7 +74,7 @@ class bkchem_http_handler( BaseHTTPServer.BaseHTTPRequestHandler):
     doc = dom.Document()
     xml_serializer.serialize( Store.app.paper, doc, doc)
     self.wfile.write( doc.toxml())
-    print "%.2f ms" % (1000*(time.time() - t))
+    print("%.2f ms" % (1000*(time.time() - t)))
 
   def serve__content_svg( self):
     self.send_response( 200)
@@ -187,7 +189,7 @@ class bkchem_http_handler( BaseHTTPServer.BaseHTTPRequestHandler):
 
 
   def do_GET( self):
-    protocol, address, path, parameters, query, fragment = urlparse.urlparse( self.path)
+    protocol, address, path, parameters, query, fragment = six.moves.urllib.parse.urlparse( self.path)
     if path == "/" or path == "content.html":
       attrs = self._get_attrs( query)
       if "action" in attrs:
@@ -257,7 +259,7 @@ class bkchem_http_handler( BaseHTTPServer.BaseHTTPRequestHandler):
     self.send_header("Content-Type", content_type)
     self.end_headers()
     
-    f = file( filename, "rb")
+    f = open( filename, "rb")
     self.wfile.write( f.read())
     f.close()
     
@@ -296,10 +298,10 @@ class bkchem_http_handler( BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 
-class bkchem_http_server( BaseHTTPServer.HTTPServer):
+class bkchem_http_server( six.moves.BaseHTTPServer.HTTPServer):
 
   def __init__( self, *args):
-    BaseHTTPServer.HTTPServer.__init__( self, *args)
+    six.moves.BaseHTTPServer.HTTPServer.__init__( self, *args)
 
 
 

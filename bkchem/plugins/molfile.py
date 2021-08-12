@@ -23,7 +23,8 @@
 
 """Molfile Export plugin"""
 
-import plugin
+from __future__ import absolute_import
+from . import plugin
 import oasa_bridge
 import types
 from oasa import transform
@@ -65,13 +66,13 @@ class molfile_exporter( plugin.exporter):
     conts, u = self.paper.selected_to_unique_top_levels()
     mols = [o for o in conts if o.object_type == 'molecule']
     if not mols:
-      import tkMessageBox
-      tkMessageBox.showerror( _("No molecule selected."),
+      import six.moves.tkinter_messagebox
+      six.moves.tkinter_messagebox.showerror( _("No molecule selected."),
                               _('You have to select exactly one molecule (any atom or bond will do).'))
       return 0
     elif len( mols) > 1:
-      import tkMessageBox
-      tkMessageBox.showerror(
+      import six.moves.tkinter_messagebox
+      six.moves.tkinter_messagebox.showerror(
         ngettext("%d molecules selected.",
                  "%d molecules selected.",
                  len(mols)) % len(mols),
@@ -82,7 +83,7 @@ class molfile_exporter( plugin.exporter):
       return 1
 
   def write_to_file( self, name):
-    if type( name) == types.StringType or type( name) == types.UnicodeType:
+    if type( name) == bytes or type( name) == str:
       file = open( name, 'w')
     else:
       file = name

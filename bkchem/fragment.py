@@ -19,12 +19,14 @@
 
 
 
-import dom_extensions as dom_ext
+from __future__ import absolute_import
+from . import dom_extensions as dom_ext
 import xml.sax.saxutils
-from singleton_store import Store
-from parents import simple_parent
-from bkchem_exceptions import bkchem_fragment_error
+from .singleton_store import Store
+from .parents import simple_parent
+from .bkchem_exceptions import bkchem_fragment_error
 import types
+import six
 
 
 class fragment( simple_parent):
@@ -101,7 +103,7 @@ class fragment( simple_parent):
       dom_ext.elementUnder( el, "bond", (("id", e.id),))
     for v in self.vertices:
       dom_ext.elementUnder( el, "vertex", (("id", v.id),))
-    for k, v in self.properties.iteritems():
+    for k, v in six.iteritems(self.properties):
       itype = 'UnicodeType'
       for tn in types.__dict__:
         if type( v) == types.__dict__[ tn]:

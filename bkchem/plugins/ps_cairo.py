@@ -18,10 +18,12 @@
 #--------------------------------------------------------------------------
 
 
-from cairo_lowlevel import cairo_exporter
-from tk2cairo import tk2cairo
+from __future__ import absolute_import
+from .cairo_lowlevel import cairo_exporter
+from .tk2cairo import tk2cairo
 import cairo
 import sys
+from six.moves import map
 # try if there is PSSurface in cairo
 _x = cairo.PSSurface
 
@@ -36,7 +38,7 @@ as it supports unicode strings and the output is of very good quality."""
     cairo_exporter.__init__( self, paper, converter_class=tk2cairo)
 
   def init_surface( self):
-    w, h = map( int, map( round, self.pagesize))
+    w, h = list(map( int, list(map( round, self.pagesize))))
     surf = cairo.PSSurface(self.filename.encode(sys.getfilesystemencoding()), w, h)
     surf.set_eps( True)
     return surf

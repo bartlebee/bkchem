@@ -18,28 +18,29 @@
 #--------------------------------------------------------------------------
 
 
-import Tkinter
-import misc
+from __future__ import absolute_import
+import six.moves.tkinter
+from . import misc
 import types
-from oasa import periodic_table as PT
+from .oasa import periodic_table as PT
 import os
-from atom import atom
-from group import group
+from .atom import atom
+from .group import group
 
 import types
-import interactors
-import parents
-import oasa
-import marks
+from . import interactors
+from . import parents
+from . import oasa
+from . import marks
 
 
-from singleton_store import Store
+from .singleton_store import Store
 
 
-class context_menu( Tkinter.Menu):
+class context_menu( six.moves.tkinter.Menu):
 
   def __init__( self, selected, **kw):
-    Tkinter.Menu.__init__( self, Store.app, tearoff=0, **kw)
+    six.moves.tkinter.Menu.__init__( self, Store.app, tearoff=0, **kw)
     self.selected = selected
     self.changes_made = 0
     already_there = []
@@ -47,7 +48,7 @@ class context_menu( Tkinter.Menu):
     # at first prepare all the items
     items = {}
     for obj_type in configurable.keys():
-      if type( obj_type) == types.StringType:
+      if type( obj_type) == bytes:
         objs = [o for o in self.selected if o.object_type == obj_type]
       else:
         objs = [o for o in self.selected if isinstance( o, obj_type)]
@@ -55,7 +56,7 @@ class context_menu( Tkinter.Menu):
       if not objs:
         continue
       for attr in configurable[ obj_type]:
-        if type( attr) == types.StringType:
+        if type( attr) == bytes:
           # attr can be either a string (key of config_values)
           vals = config_values[ attr]
         if type( attr) == types.FunctionType:
@@ -66,7 +67,7 @@ class context_menu( Tkinter.Menu):
           items[ vals[ I18N_NAME]] = []
           self.configurable[ obj_type] = self.configurable.get( obj_type, []) + [attr] 
           for v in vals[ VALUES]:
-            if type( v) == types.TupleType:
+            if type( v) == tuple:
               items[ vals[ I18N_NAME]].append( (v[1], attr, objs, v[0]))
             else:
               items[ vals[ I18N_NAME]].append( (v, attr, objs, v))
@@ -77,10 +78,10 @@ class context_menu( Tkinter.Menu):
             tup[2].extend( objs)
 
     # then sort the items and polulate the menu
-    keys = items.keys()
+    keys = list(items.keys())
     keys.sort()
     for key in keys:
-      casc = Tkinter.Menu( self, tearoff=0)
+      casc = six.moves.tkinter.Menu( self, tearoff=0)
       self.add_cascade( label=key, menu=casc)
       for (v1, attr, objs, v0) in items[ key]:
         casc.add_command( label=v1, command=misc.lazy_apply( self.callback, (attr, objs, v0)))
@@ -137,7 +138,7 @@ class context_menu( Tkinter.Menu):
 
 
   def post( self, x, y):
-    Tkinter.Menu.post( self, x, y)
+    six.moves.tkinter.Menu.post( self, x, y)
     if os.name != 'nt':
       self.grab_set()
     

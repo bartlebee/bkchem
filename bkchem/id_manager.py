@@ -17,8 +17,10 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
 from random import randint
 from warnings import warn
+import six
 
 class id_manager:
 
@@ -28,17 +30,17 @@ class id_manager:
 
   def register_id( self, obj, id):
     if self.is_registered_object( obj):
-      raise ValueError, "object is already registered "+str(obj)
+      raise ValueError("object is already registered "+str(obj))
     self.id_map[ id] = obj
 
 
   def unregister_id( self, id, obj):
     try:
       if self.id_map[ id] != obj:
-        raise ValueError, "id and object do not correspond"
+        raise ValueError("id and object do not correspond")
       del self.id_map[ id]
     except KeyError:
-      raise ValueError, "id %s is not registered" % id
+      raise ValueError("id %s is not registered" % id)
 
 
   def get_object_with_id( self, id):
@@ -66,11 +68,11 @@ class id_manager:
 
 
   def is_registered_object( self, obj): 
-    return (obj in self.id_map.values())
+    return (obj in list(self.id_map.values()))
 
 
   def get_id_of_object( self, obj):
-    for k,v in self.id_map.iteritems():
+    for k,v in six.iteritems(self.id_map):
       if v == obj:
         return k
     return None

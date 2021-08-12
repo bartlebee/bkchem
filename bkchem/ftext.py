@@ -22,12 +22,15 @@
 ftext is XML based. Tags used for formating are:
 sub - (sub)script, sup - (sup)erscript, b - bold, i - italic"""
 
-import tkFont
-import dom_extensions
+from __future__ import absolute_import
+import six.moves.tkinter_font
+from . import dom_extensions
 import xml.sax
 import copy
 
-import tuning
+from . import tuning
+from six import unichr
+import six
 
 
 
@@ -46,7 +49,7 @@ class ftext:
     if font:
       self.font = font
     else:
-      self.font = tkFont.Font( family="Helvetica", size=12)
+      self.font = six.moves.tkinter_font.Font( family="Helvetica", size=12)
     self._font_family = self.font.actual('family')
     self._font_size = int( self.font.actual('size'))
     self.pos = pos
@@ -202,7 +205,7 @@ class ftext:
 
   @classmethod
   def sanitize_text( cls, text):
-    if type( text) != unicode:
+    if type( text) != six.text_type:
       text = text.decode('utf-8')
     text = unescape_html_entity_references( text).encode('utf-8')
     x = "<ftext>%s</ftext>" % text
@@ -257,7 +260,7 @@ class FtextHandler ( xml.sax.ContentHandler):
 
 
 
-from htmlentitydefs import name2codepoint
+from six.moves.html_entities import name2codepoint
 import re
 
 def unescape_html_entity_references( text):

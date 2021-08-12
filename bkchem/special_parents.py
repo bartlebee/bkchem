@@ -18,21 +18,24 @@
 #--------------------------------------------------------------------------
 
 
-import misc
-import marks
+from __future__ import absolute_import
+from . import misc
+from . import marks
 
-from oasa import geometry
+from .oasa import geometry
 from math import sin, cos, sqrt, pi
 import types
-import oasa
-from parents import meta_enabled, area_colored, point_drawable, text_like, child_with_paper
-from singleton_store import Store, Screen
-from ftext import ftext
+from . import oasa
+from .parents import meta_enabled, area_colored, point_drawable, text_like, child_with_paper
+from .singleton_store import Store, Screen
+from .ftext import ftext
 import xml.dom.minidom as dom
-import tkFont
-import debug
-from tuning import Tuning
+import six.moves.tkinter_font
+from . import debug
+from .tuning import Tuning
 import operator
+from six.moves import map
+import six
 
 
 class vertex_common( object):
@@ -57,7 +60,7 @@ class vertex_common( object):
   # number
   def _set_number( self, number):
     if number:
-      self._number = unicode( number)
+      self._number = six.text_type( number)
     else:
       self._number = number # we do not want to convert None to unicode :)
     if self._number != None and self.show_number:
@@ -98,7 +101,7 @@ class vertex_common( object):
 
 
   def _mark_to_name_and_class( self, mark):
-    if type( mark) in (types.ClassType, types.TypeType):
+    if type( mark) in (type, type):
       return mark.__name__, mark
     else:
       return mark, marks.__dict__[ mark]
@@ -114,7 +117,7 @@ class vertex_common( object):
       self._set_mark_helper( mark, sign=1)
       return m
     else:
-      raise ValueError, "not a allowed mark for this type - %s" % mark
+      raise ValueError("not a allowed mark for this type - %s" % mark)
 
 
 
@@ -122,7 +125,7 @@ class vertex_common( object):
     """mark is either mark instance of type, in case of instance, the instance is removed,
     in case of type a random mark of this type (if present is removed).
     Returns the removed mark or None"""
-    if type( mark) == types.StringType:
+    if type( mark) == bytes:
       ms = [m for m in self.marks if m.__class__.__name__ == mark]
       if ms:
         m = ms[0]
@@ -132,9 +135,9 @@ class vertex_common( object):
       if mark in self.marks:
         m = mark
       else:
-        raise ValueError, "trying to remove a mark that does not belong to this atom"
+        raise ValueError("trying to remove a mark that does not belong to this atom")
     else:
-      raise TypeError, "mark is on unknown type " + str( mark)
+      raise TypeError("mark is on unknown type " + str( mark))
 
     m.delete()
     self.marks.remove( m)
@@ -643,7 +646,7 @@ class drawable_chem_vertex( oasa.chem_vertex, meta_enabled, area_colored, point_
 
 
   def update_font( self):
-    self.font = tkFont.Font( family=self.font_family, size=self.font_size)
+    self.font = six.moves.tkinter_font.Font( family=self.font_family, size=self.font_size)
         
 
 
@@ -686,7 +689,7 @@ class drawable_chem_vertex( oasa.chem_vertex, meta_enabled, area_colored, point_
       box = self.paper.bbox( self.item)
       if substract_font_descent and self.show:
         hack_y = self.font.metrics()['descent']
-        x1, y1, x2, y2 = map( operator.add, box, Tuning.Screen.drawable_chem_vertex_bbox_mod_after_descent_removal)
+        x1, y1, x2, y2 = list(map( operator.add, box, Tuning.Screen.drawable_chem_vertex_bbox_mod_after_descent_removal))
         box =  x1, y1, x2, y2-hack_y
       #if Store.app.in_batch_mode:
       #  # in batch mode the bboxes work really strangely and this fixes it somehow

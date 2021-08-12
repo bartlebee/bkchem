@@ -23,9 +23,11 @@
 
 """provides export plugin to povray"""
 
-import plugin
+from __future__ import absolute_import
+from . import plugin
 import operator
 import StringIO
+from six.moves import map
 
 class POV_exporter( plugin.exporter):
   """export to POVRAY formate"""
@@ -33,8 +35,8 @@ class POV_exporter( plugin.exporter):
     self.paper = paper
 
   def on_begin( self):
-    import tkMessageBox
-    yes = tkMessageBox.askyesno( _("Really export?"),
+    import six.moves.tkinter_messagebox
+    yes = six.moves.tkinter_messagebox.askyesno( _("Really export?"),
                                  _('This plugin is not finished and will probably not work correctly.') + ' ' +
                                  _('Proceed?'))
     return yes
@@ -76,7 +78,7 @@ class POV_exporter( plugin.exporter):
   def fill_image( self):
     for item in self.paper.find_all():
       if self.paper.type( item) == "line":
-        a = map( int, self.paper.coords( item))
+        a = list(map( int, self.paper.coords( item)))
         t = float( self.paper.itemcget( item, 'width'))
         if not (a[0]==a[2] and a[1]==a[3]): 
           self.doc.write( '''cylinder {<%d, %d, 0>, <%d, %d, 0>, %1.1f\n texture { bond }}\n''' % ( a[0], 480-a[1], a[2], 480-a[3], t))

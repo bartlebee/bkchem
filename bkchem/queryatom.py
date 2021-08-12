@@ -22,17 +22,20 @@
 
 from __future__ import division
 
+from __future__ import absolute_import
 from warnings import warn
-import dom_extensions
-from oasa import periodic_table as PT
-import marks
-from special_parents import drawable_chem_vertex
-import data
+from . import dom_extensions
+from .oasa import periodic_table as PT
+from . import marks
+from .special_parents import drawable_chem_vertex
+from . import data
 import re
-import debug
+from . import debug
 
-import oasa
-from singleton_store import Screen
+from . import oasa
+from .singleton_store import Screen
+from six.moves import map
+import six
 
 
 ### NOTE: now that all classes are children of meta_enabled, so the read_standard_values method
@@ -75,7 +78,7 @@ class queryatom( drawable_chem_vertex, oasa.query_atom):
 
   def _set_name( self, name):
     try:
-      t = unicode( name)
+      t = six.text_type( name)
     except UnicodeDecodeError:
       t = name.decode( 'utf-8')
     self.__name = t.encode('utf-8')
@@ -254,7 +257,7 @@ class queryatom( drawable_chem_vertex, oasa.query_atom):
     if self.area_color != self.paper.standard.area_color:
       a.setAttribute( 'background-color', self.area_color)
     # needed to support transparent handling of molecular size
-    x, y, z = map( Screen.px_to_text_with_unit, self.get_xyz( real=1))
+    x, y, z = list(map( Screen.px_to_text_with_unit, self.get_xyz( real=1)))
     if self.z:
       dom_extensions.elementUnder( a, 'point', attributes=(('x', x), ('y', y), ('z', z)))
     else: 

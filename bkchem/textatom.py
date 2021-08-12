@@ -22,20 +22,23 @@
 
 from __future__ import division
 
+from __future__ import absolute_import
 from warnings import warn
-import dom_extensions
+from . import dom_extensions
 import xml.dom.minidom as dom
 import operator
-from oasa import periodic_table as PT
-from special_parents import drawable_chem_vertex
-import data
+from .oasa import periodic_table as PT
+from .special_parents import drawable_chem_vertex
+from . import data
 import re
-import debug
-import marks
+from . import debug
+from . import marks
 
-import oasa
+from . import oasa
 
-from singleton_store import Screen
+from .singleton_store import Screen
+from six.moves import map
+import six
 
 
 ### NOTE: now that all classes are children of meta_enabled, so the read_standard_values method
@@ -74,7 +77,7 @@ class textatom( drawable_chem_vertex):
 
   def _set_symbol( self, symbol):
     try:
-      t = unicode( symbol)
+      t = six.text_type( symbol)
     except UnicodeDecodeError:
       t = symbol.decode( 'utf-8')
     self._symbol = t
@@ -145,7 +148,7 @@ class textatom( drawable_chem_vertex):
     if ft:
       self.set_name( reduce( operator.add, [e.nodeValue for e in ft[0].childNodes if isinstance( e, dom.Text)], '').encode('utf-8'))
     else:
-      raise TypeError, "not text atom"
+      raise TypeError("not text atom")
     # font and fill color
     fnt = package.getElementsByTagName('font')
     if fnt:
@@ -189,7 +192,7 @@ class textatom( drawable_chem_vertex):
     if self.area_color != self.paper.standard.area_color:
       a.setAttribute( 'background-color', self.area_color)
     # needed to support transparent handling of molecular size
-    x, y, z = map( Screen.px_to_text_with_unit, self.get_xyz( real=1))
+    x, y, z = list(map( Screen.px_to_text_with_unit, self.get_xyz( real=1)))
     if self.z:
       dom_extensions.elementUnder( a, 'point', attributes=(('x', x), ('y', y), ('z', z)))
     else: 

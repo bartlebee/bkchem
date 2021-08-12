@@ -23,10 +23,12 @@
 
 """CML import-export plugin"""
 
-import plugin
+from __future__ import absolute_import
+from . import plugin
 import xml.dom.minidom as dom
 import dom_extensions as dom_ext
 import math
+from six.moves import range
 
 ## DEFINITIONS
 
@@ -87,7 +89,7 @@ class CML_importer( plugin.importer):
     out = doc.createElement( 'atom')
     try:
       atom = self.CML_atom( cml=a)
-    except cml_exception, detail:
+    except cml_exception as detail:
       # problems converting cml to atom
       raise plugin.import_exception( detail)
     if atom.not_enough_data():
@@ -109,7 +111,7 @@ class CML_importer( plugin.importer):
     out = doc.createElement( 'bond')
     try:
       bond = self.CML_bond( cml=b)
-    except cml_exception, detail:
+    except cml_exception as detail:
       # problems converting cml to bond
       raise plugin.import_exception( str( detail))
     return self.transform_CML_bond( bond, doc)
@@ -181,8 +183,8 @@ class CML_exporter( plugin.exporter):
 
   def on_begin( self):
     if self.check_chemistry():
-      import tkMessageBox      
-      yes = tkMessageBox.askyesno( _("Normalize bond length?"),
+      import six.moves.tkinter_messagebox      
+      yes = six.moves.tkinter_messagebox.askyesno( _("Normalize bond length?"),
                                    _("If you are exporting to some kind of computational software it might be important to rescale the molecule, so that the bond lengths are in range of normal chemical bonds. Do you want to do this? It will influence only the exported CML file, not the drawing."))
       if yes:
         self.scale = self.compute_scaling()
@@ -197,20 +199,20 @@ class CML_exporter( plugin.exporter):
     val = validator.validator()
     val.validate( self.paper.molecules)
     if val.report.text_atoms:
-      import tkMessageBox
-      tkMessageBox.showerror( _("CML export error"),
+      import six.moves.tkinter_messagebox
+      six.moves.tkinter_messagebox.showerror( _("CML export error"),
                               _("Sorry but your drawing includes 'text atoms'\n - atoms with no chemical sense.") + "\n\n" +
                               _("It is not possible to export it to valid CML.") + "\n\n" +
                               _("For details check the chemistry with '%s/%s'.") % (_("Chemistry"), _("Check chemistry")))
       return 0
     if val.report.exceeded_valency:
-      import tkMessageBox
-      tkMessageBox.showwarning( _("CML export warning"),
+      import six.moves.tkinter_messagebox
+      six.moves.tkinter_messagebox.showwarning( _("CML export warning"),
                                 _("Your drawing includes some atoms with exceeded valency.") + "\n\n" + 
                                 _("For details check the chemistry with '%s/%s'.") % (_("Chemistry"), _("Check chemistry")))
     if val.report.group_atoms:
-      import tkMessageBox
-      yes = tkMessageBox.askyesno( _("Expand groups?"),
+      import six.moves.tkinter_messagebox
+      yes = six.moves.tkinter_messagebox.askyesno( _("Expand groups?"),
                                 _("Your drawing includes some groups.") + "\n\n" + 
                                 _("These must be expanded in order to export to valid CML. The expansion could be undone with undo after the export") + "\n\n"+
                                 _("Proceed with expansion?"))

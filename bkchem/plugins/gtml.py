@@ -20,7 +20,8 @@
 
 """GTML import-export plugin"""
 
-import plugin
+from __future__ import absolute_import
+from . import plugin
 from molecule import molecule
 from atom import atom
 from bond import bond
@@ -70,12 +71,12 @@ class gtml_importer:
     # prepare the file to resolve entities
     f = StringIO.StringIO()
     f.write( "<!DOCTYPE item [")
-    entities = file( 'mathmlentities.ent')
+    entities = open( 'mathmlentities.ent')
     f.write( entities.read())
     entities.close()
     f.write( "<!ENTITY epsilon '&#x3B5;'><!ENTITY nevim '&amp;nevim;'>]>")
 
-    the_file = file( file_name)
+    the_file = open( file_name)
     f.write( the_file.read())
     the_file.close()
     f.seek(0)

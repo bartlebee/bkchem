@@ -23,8 +23,9 @@ throughout BKChem - mainly from paper and modules"""
 
 
 
-import interactors
-from singleton_store import Store
+from __future__ import absolute_import
+from . import interactors
+from .singleton_store import Store
 
 
 

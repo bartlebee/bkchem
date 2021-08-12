@@ -23,12 +23,14 @@
 
 """provides validator class that checks chemistry"""
 
+from __future__ import absolute_import
 import types
-from atom import atom
-from group import group
-from textatom import textatom
-import molecule
-import misc
+from .atom import atom
+from .group import group
+from .textatom import textatom
+from . import molecule
+from . import misc
+from six.moves import map
 
 
 class validator:
@@ -44,7 +46,7 @@ class validator:
     self.validate_object( o)
 
   def validate_object( self, o):
-    if type( o) == types.ListType:
+    if type( o) == list:
       self.validate_list( o)
     elif misc.isinstance_of_one( o, (atom,group,textatom)):
       self.validate_atom( o)
@@ -67,8 +69,8 @@ class validator:
 
 
   def validate_molecule( self, mol):
-    map( self.validate_atom, mol.atoms)
-    map( self.validate_bond, mol.bonds)
+    list(map( self.validate_atom, mol.atoms))
+    list(map( self.validate_bond, mol.bonds))
 
   def validate_list( self, objs):
     [self.validate_object( o) for o in objs]

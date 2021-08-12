@@ -18,6 +18,7 @@
 #--------------------------------------------------------------------------
 
 
+from __future__ import print_function
 class bkchem_error( Exception):
 
   def __init__( self):
@@ -35,7 +36,7 @@ class bkchem_graph_error( bkchem_error):
 
 
   def __str__( self):
-    print "BKChem graph error, id=%s, value=%s" % (self.id, self.value)
+    print("BKChem graph error, id=%s, value=%s" % (self.id, self.value))
 
 
 
@@ -51,7 +52,7 @@ class bkchem_fragment_error( bkchem_error):
 
 
   def __str__( self):
-    print "BKChem fragments error, id=%s, value=%s" % (self.id, self.value)
+    print("BKChem fragments error, id=%s, value=%s" % (self.id, self.value))
 
 
   

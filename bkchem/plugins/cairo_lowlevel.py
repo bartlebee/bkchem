@@ -18,13 +18,15 @@
 #--------------------------------------------------------------------------
 
 
-import plugin
-from tk2cairo import tk2cairo
+from __future__ import absolute_import
+from . import plugin
+from .tk2cairo import tk2cairo
 from oasa import transform
 import cairo
 
 
 from singleton_store import Screen, Store
+from six.moves import map
 
 
 class cairo_exporter( plugin.exporter):

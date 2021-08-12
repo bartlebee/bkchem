@@ -22,56 +22,63 @@
 
 from __future__ import division
 
-from Tkinter import Canvas, ALL
-import tkFont, tkMessageBox
-import classes
-import arrow
-from molecule import molecule
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves.tkinter import Canvas, ALL
+import six.moves.tkinter_font, six.moves.tkinter_messagebox
+from . import classes
+from . import arrow
+from .molecule import molecule
+import six
+from six.moves import filter
+from six.moves import map
+from six.moves import range
+from functools import reduce
 try:
-  from oasa.oasa.transform import transform 
-  from oasa.oasa.transform3d import transform3d
+  from .oasa.oasa.transform import transform 
+  from .oasa.oasa.transform3d import transform3d
 except ImportError:
-  from oasa.transform import transform
-  from oasa.transform3d import transform3d
-import misc
-from temp_manager import template_manager
+  from .oasa.transform import transform
+  from .oasa.transform3d import transform3d
+from . import misc
+from .temp_manager import template_manager
 import string
-import data
-import config
-import messages
-import dom_extensions
+from . import data
+from . import config
+from . import messages
+from . import dom_extensions
 import xml.dom.minidom as dom
 import operator
 from warnings import warn
-import undo
+from . import undo
 import math
-import xml_writer
-from oasa import periodic_table as PT
-import Pmw
-import graphics
+from . import xml_writer
+from .oasa import periodic_table as PT
+from . import Pmw
+from . import graphics
 import types
-import os_support
+from . import os_support
 import copy
-import dialogs
-import CDML_versions
+from . import dialogs
+from . import CDML_versions
 import os
-import parents
-from reaction import reaction
-import debug
-import oasa
-from external_data import external_data_manager
-from group import group
-from atom import atom
-from textatom import textatom
-import oasa
-from oasa import geometry
-from id_manager import id_manager
-import interactors
+from . import parents
+from .reaction import reaction
+from . import debug
+from . import oasa
+from .external_data import external_data_manager
+from .group import group
+from .atom import atom
+from .textatom import textatom
+from . import oasa
+from .oasa import geometry
+from .id_manager import id_manager
+from . import interactors
 import exceptions
-import checks
-from helper_graphics import selection_rect
+from . import checks
+from .helper_graphics import selection_rect
       
-from singleton_store import Store, Screen
+from .singleton_store import Store, Screen
 
 
 class chem_paper( Canvas, object):
@@ -301,8 +308,8 @@ class chem_paper( Canvas, object):
     Store.app.update_cursor_position( event.x, event.y)
     Store.app.mode.mouse_drag( event) 
     b = self.find_overlapping( event.x-2, event.y-2, event.x+2, event.y+2)
-    b = filter( self.is_registered_id, b)
-    a = map( self.id_to_object, b)
+    b = list(filter( self.is_registered_id, b))
+    a = list(map( self.id_to_object, b))
     a = [i for i in a if i not in self._do_not_focus]
     if a:
       a = a[-1]
@@ -350,7 +357,7 @@ class chem_paper( Canvas, object):
 
 
     b = self.find_overlapping( event.x-3, event.y-3, event.x+3, event.y+3)
-    b = filter( self.is_registered_id, b)
+    b = list(filter( self.is_registered_id, b))
     id_objs = [(x, self.id_to_object( x)) for x in b]
     a = [i for i in id_objs if i[1] not in self._do_not_focus]
 
@@ -498,14 +505,14 @@ class chem_paper( Canvas, object):
           to_delete += [a]
       else:
         a.redraw()
-    map( self.stack.remove, to_delete)
+    list(map( self.stack.remove, to_delete))
     [o.delete() for o in to_delete]
     # PLUS
-    to_delete = filter( lambda o: o.object_type == 'plus', self.selected)
-    map( lambda o: o.delete(), to_delete)
-    map( self.stack.remove, to_delete)
+    to_delete = [o for o in self.selected if o.object_type == 'plus']
+    list(map( lambda o: o.delete(), to_delete))
+    list(map( self.stack.remove, to_delete))
     # TEXT
-    to_delete = filter( lambda o: o.object_type == 'text', self.selected)
+    to_delete = [o for o in self.selected if o.object_type == 'text']
     for t in to_delete:
       t.delete()
       self.stack.remove( t)
@@ -522,7 +529,7 @@ class chem_paper( Canvas, object):
             to_delete += [a]
         else:
           a.redraw()
-    map( self.stack.remove, to_delete)
+    list(map( self.stack.remove, to_delete))
     [o.delete() for o in to_delete]
     # BOND AND ATOM
     bonds = [o for o in self.selected if o.object_type == 'bond']
@@ -539,9 +546,9 @@ class chem_paper( Canvas, object):
       if new_mols:
         mols_to_delete.append( mol)
     if new:
-      map( self.stack.remove, mols_to_delete)
+      list(map( self.stack.remove, mols_to_delete))
       self.stack.extend( new)
-    empty_mols = filter( lambda o: o.is_empty(), self.molecules)
+    empty_mols = [o for o in self.molecules if o.is_empty()]
     [self.stack.remove( o) for o in empty_mols]
     # start new undo
     if self.selected:
@@ -557,7 +564,7 @@ class chem_paper( Canvas, object):
 
 
   def bonds_to_update( self, exclude_selected_bonds=True):
-    a = reduce( operator.or_, map( set, [v.get_neighbor_edges() for v in self.selected if v.object_type == "atom"]), set())
+    a = reduce( operator.or_, list(map( set, [v.get_neighbor_edges() for v in self.selected if v.object_type == "atom"])), set())
     # if bond is also selected then it moves with and should not be updated
     if exclude_selected_bonds:
       return [b for b in a if b not in self.selected]
@@ -583,7 +590,7 @@ class chem_paper( Canvas, object):
 
 
   def arrows_to_update( self):
-    a = map( lambda o: o.arrow, filter( lambda p: p.object_type == 'point', self.selected))
+    a = [o.arrow for o in [p for p in self.selected if p.object_type == 'point']]
     return misc.filter_unique( a)
 
 
@@ -598,7 +605,7 @@ class chem_paper( Canvas, object):
     original_version = CDML.getAttribute( 'version')
     success = CDML_versions.transform_dom_to_version( CDML, config.current_CDML_version)
     if not success:
-      if not tkMessageBox.askokcancel( _('Proceed'),
+      if not six.moves.tkinter_messagebox.askokcancel( _('Proceed'),
 				       _('''This CDML document does not seem to have supported version.
 				       \n Do you want to proceed reading this document?'''),
                                        default = 'ok',
@@ -626,7 +633,7 @@ class chem_paper( Canvas, object):
     viewport = dom_extensions.getFirstChildNamed( CDML, 'viewport')
     if viewport:
       viewport = viewport.getAttribute( 'viewport')
-      self.set_viewport( view= map( float, viewport.split(' ')))
+      self.set_viewport( view= list(map( float, viewport.split(' '))))
     else:
       self.set_viewport()
     # standard must be read before all items
@@ -658,7 +665,7 @@ class chem_paper( Canvas, object):
             o.draw()
     # now check if the old standard differs
     if new_standard and old_standard != self.standard and not Store.app.in_batch_mode:
-      if not tkMessageBox.askokcancel( _('Replace standard values'),
+      if not six.moves.tkinter_messagebox.askokcancel( _('Replace standard values'),
 				       messages.standards_differ_text,
                                        default = 'ok',
 				       parent=self):
@@ -833,7 +840,7 @@ class chem_paper( Canvas, object):
 
     deleted = []
     if overlap:
-      mols = misc.filter_unique( map( lambda a: map( lambda b: b.molecule, a), overlap))
+      mols = misc.filter_unique( [[b.molecule for b in a] for a in overlap])
       #print 3, time.time() - ttt
       a_eatenby_b1 = []
       a_eatenby_b2 = []
@@ -868,7 +875,7 @@ class chem_paper( Canvas, object):
   def set_name_to_selected( self, name, interpret=1):
     """sets name to all selected atoms and texts,
     also records it in an undo !!!"""
-    if type( name) != unicode:
+    if type( name) != six.text_type:
       name = name.decode('utf-8')
     vtype = None
     for item in self.selected[:]:
@@ -926,7 +933,7 @@ class chem_paper( Canvas, object):
 
 
   def object_to_id( self, obj):
-    for k, v in self._id_2_object.iteritems():
+    for k, v in six.iteritems(self._id_2_object):
       if v == obj:
         return k
     return None
@@ -936,12 +943,12 @@ class chem_paper( Canvas, object):
 
   def is_registered_object( self, o):
     """has this object a registered id?"""
-    return o in self._id_2_object.values()
+    return o in list(self._id_2_object.values())
 
 
 
   def is_registered_id( self, id):
-    return id in self._id_2_object.keys()
+    return id in list(self._id_2_object.keys())
 
 
 
@@ -1205,8 +1212,8 @@ class chem_paper( Canvas, object):
       else:
         xmaxs = [bboxes[i] for i in range( 0, len( bboxes), 4)] 
         xmins = [bboxes[i] for i in range( 2, len( bboxes), 4)]
-        xs = map( operator.add, xmaxs, xmins)
-        xs = map( operator.div, xs, len(xs)*[2])
+        xs = list(map( operator.add, xmaxs, xmins))
+        xs = list(map( operator.div, xs, len(xs)*[2]))
         x = (max( xs) + min( xs)) / 2 # reduce( operator.add, xs) / len( xs) # this makes mean value rather then center 
       for i in range( len( xs)):
         to_align[i].move( x-xs[i], 0)
@@ -1221,8 +1228,8 @@ class chem_paper( Canvas, object):
       else:
         ymaxs = [bboxes[i] for i in range( 1, len( bboxes), 4)] 
         ymins = [bboxes[i] for i in range( 3, len( bboxes), 4)]
-        ys = map( operator.add, ymaxs, ymins)
-        ys = map( operator.div, ys, len(ys)*[2])
+        ys = list(map( operator.add, ymaxs, ymins))
+        ys = list(map( operator.div, ys, len(ys)*[2]))
         y = (max( ys) + min( ys)) /2 # reduce( operator.add, ys) / len( ys) 
       for i in range( len( ys)):
         to_align[i].move( 0, y-ys[i])
@@ -1514,7 +1521,7 @@ class chem_paper( Canvas, object):
 
 
   def check_chemistry_of_selected( self):
-    import validator
+    from . import validator
     val = validator.validator()
     s_mols = [m for m in self.selected_to_unique_top_levels()[0] if m.object_type == 'molecule']
     if not s_mols:
@@ -1564,7 +1571,7 @@ class chem_paper( Canvas, object):
   def screen_to_real_coords( self, coords):
     """transforms set of x,y coordinates to real coordinates, input list must have even length"""
     if len( coords) % 2:
-      raise ValueError, "only even number of coordinates could be transformed"
+      raise ValueError("only even number of coordinates could be transformed")
     out = []
     for i in range( 0, len( coords), 2):
       out.extend( self._screen2real.transform_xy( coords[i], coords[i+1]))
@@ -1577,7 +1584,7 @@ class chem_paper( Canvas, object):
   def real_to_screen_coords( self, coords):
     """transforms set of x,y coordinates to screen coordinates, input list must have even length"""
     if len( coords) % 2:
-      raise ValueError, "only even number of coordinates could be transformed"
+      raise ValueError("only even number of coordinates could be transformed")
     out = []
     for i in range( 0, len( coords), 2):
       out.extend( self._real2screen.transform_xy( coords[i], coords[i+1]))
@@ -1663,7 +1670,7 @@ class chem_paper( Canvas, object):
   def _open_debug_console( self):
     m = Store.app.mode
     for i in m.__dict__:
-      print i, ' : ', m.__dict__[i]
+      print(i, ' : ', m.__dict__[i])
 
 
 
@@ -1674,7 +1681,7 @@ class chem_paper( Canvas, object):
     if not color:
       return "none"
     else:
-      r, g, b = map( lambda x: (x < 256 and x) or (x >= 256 and x//256),  self.winfo_rgb( color))
+      r, g, b = [(x < 256 and x) or (x >= 256 and x//256) for x in self.winfo_rgb( color)]
       return "#%02x%02x%02x" % (r,g,b)
   
 
@@ -1853,7 +1860,7 @@ class chem_paper( Canvas, object):
       root.appendChild( st.get_package( doc))
       dom_extensions.safe_indent( root)
       try:
-        f = file( name, 'w')
+        f = open( name, 'w')
       except IOError:
         return 0
       try:
@@ -1995,13 +2002,13 @@ class chem_paper( Canvas, object):
         # we must check if the selection defines one connected subgraph of the molecule
         # otherwise the coordinate generation will not work
         if len( selected) == 1:
-          print "sorry, but the selection must contain at least two atoms (one bond)"
+          print("sorry, but the selection must contain at least two atoms (one bond)")
           return
         else:
           sub = mol.get_new_induced_subgraph( selected, mol.vertex_subgraph_to_edge_subgraph( selected))
           subs = [comp for comp in sub.get_connected_components()]
           if len( subs) != 1:
-            print "sorry, but the selection must define a continuos block in the molecule"
+            print("sorry, but the selection must define a continuos block in the molecule")
             return
 
         # now we check what has been selected

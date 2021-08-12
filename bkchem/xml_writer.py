@@ -20,19 +20,22 @@
 
 """provides exporters to XML formats (SVG for now)"""
 
-from oasa import geometry
+from __future__ import absolute_import
+from .oasa import geometry
 import xml.dom.minidom as dom
 from xml.dom.minidom import Document
 import re
-import data
-import dom_extensions
+from . import data
+from . import dom_extensions
 import operator
-import dom_extensions
+from . import dom_extensions
 import os
-from tuning import Tuning
-from ftext import ftext as ftext_class
+from .tuning import Tuning
+from .ftext import ftext as ftext_class
 
-from singleton_store import Screen
+from .singleton_store import Screen
+from six.moves import map
+from six import unichr
 
 
 class XML_writer:
@@ -225,7 +228,7 @@ class SVG_writer( XML_writer):
         # the pins
         line_pin = a._pins.index( self.paper.itemcget( item, 'arrow'))
         if line_pin == 1 or line_pin == 3:
-          d1, d2, d3 = map( int, self.paper.itemcget( item, "arrowshape").split())
+          d1, d2, d3 = list(map( int, self.paper.itemcget( item, "arrowshape").split()))
           defs = dom_extensions.elementUnder( self.group, 'defs')
           arrow_point = dom_extensions.elementUnder( defs, 'marker', (('id','Arrow'+str(i)),('refX',str(d2)),('refY',str(d3)),
                                                                 ('markerUnits','userSpaceOnUse'),
@@ -235,7 +238,7 @@ class SVG_writer( XML_writer):
                                                                 ('fill', self.cc( a.line_color))))
           dom_extensions.elementUnder( arrow_point, 'path', (('d', 'M %d %d L 0 0 L %d %d L 0 %d z'%(d2, d3, d2-d1, d3, 2*d3)),))
         if line_pin == 2 or line_pin == 3:
-          d1, d2, d3 = map( int, self.paper.itemcget( item, "arrowshape").split())
+          d1, d2, d3 = list(map( int, self.paper.itemcget( item, "arrowshape").split()))
           defs = dom_extensions.elementUnder( self.group, 'defs')
           arrow_point = dom_extensions.elementUnder( defs, 'marker', (('id','ArrowBack'+str(i)),('refX','0'),('refY',str(d3)),
                                                                 ('markerUnits','userSpaceOnUse'),

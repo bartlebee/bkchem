@@ -21,17 +21,21 @@
 """set of marks such as charges, radicals etc."""
 
 from __future__ import division
-from oasa import geometry
+from __future__ import absolute_import
+from .oasa import geometry
 import xml.dom.minidom as dom
-import dom_extensions
+from . import dom_extensions
 import warnings
-from parents import simple_parent
-from singleton_store import Screen
-import data
-import tkFont
+from .parents import simple_parent
+from .singleton_store import Screen
+from . import data
+import six.moves.tkinter_font
 import math
-import debug
-from oasa import transform
+from . import debug
+from .oasa import transform
+import six
+from six.moves import map
+from six.moves import range
 
 
 class mark( simple_parent):
@@ -125,13 +129,13 @@ class mark( simple_parent):
 
   def get_package( self, doc):
     a = doc.createElement('mark')
-    x ,y = map( Screen.px_to_text_with_unit, (self.x, self.y))
+    x ,y = list(map( Screen.px_to_text_with_unit, (self.x, self.y)))
     dom_extensions.setAttributes( a, (('type', self.__class__.__name__),
                                       ('x', x),
                                       ('y', y),
                                       ('auto', str( int( self.auto))),
                                       ('size', str( self.size))))
-    for (attr, typ) in self.meta__save_attrs.iteritems():
+    for (attr, typ) in six.iteritems(self.meta__save_attrs):
       val = getattr( self, attr)
       if typ == bool:
         value = data.booleans[ int( val)]
@@ -155,7 +159,7 @@ class mark( simple_parent):
         m = cls( atom, x, y, auto=int(auto))
 
       # class specific attributes
-      for (attr, typ) in m.meta__save_attrs.iteritems():
+      for (attr, typ) in six.iteritems(m.meta__save_attrs):
         val = package.getAttribute( attr)
         if val != '':
           if typ == bool:
@@ -170,7 +174,7 @@ class mark( simple_parent):
         m._after_read_package()
       return m
     else:
-      raise ValueError, "no such mark type %s" % typ
+      raise ValueError("no such mark type %s" % typ)
 
   read_package = classmethod( read_package)
 
@@ -500,11 +504,11 @@ class text_mark( mark):
   def get_svg_element( self, doc):
     e = doc.createElement( 'g')
     x, y = self.x, self.y
-    font = tkFont.Font( family=self.atom.font_family, size=self.size)
+    font = six.moves.tkinter_font.Font( family=self.atom.font_family, size=self.size)
     dx = font.measure( self.text) / 2
     y += font.metrics('descent')
 
-    text = dom_extensions.textOnlyElementUnder( e, 'text', unicode( self.text),
+    text = dom_extensions.textOnlyElementUnder( e, 'text', six.text_type( self.text),
                                                 (('font-size', "%dpt" % self.size),
                                                  ('font-family', self.atom.font_family),
                                                  ( "x", str( x - dx)),

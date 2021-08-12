@@ -18,8 +18,9 @@
 #--------------------------------------------------------------------------
 
 
-import plugin
-from tk2piddle import tk2piddle
+from __future__ import absolute_import
+from . import plugin
+from .tk2piddle import tk2piddle
 from oasa import transform
 
 from singleton_store import Screen, Store

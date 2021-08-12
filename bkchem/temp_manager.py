@@ -23,21 +23,22 @@
 
 """template manager resides here"""
 
+from __future__ import absolute_import
 import math
 try:
-  from oasa.oasa.transform import transform
+  from .oasa.oasa.transform import transform
 except ImportError:
-  from oasa.transform import transform
-from molecule import molecule
+  from .oasa.transform import transform
+from .molecule import molecule
 import xml.dom.minidom as dom
 from warnings import warn
-import config
+from . import config
 import os.path
-import os_support
+from . import os_support
 import xml.sax
-import misc
+from . import misc
 
-from singleton_store import Store, Screen
+from .singleton_store import Store, Screen
 
 
 class template_manager:
@@ -60,7 +61,7 @@ class template_manager:
       warn( "template file %s cannot be parsed - ignoring" % file)
       return
     # when loading old versions of CDML try to convert them, but do nothing when they cannot be converted
-    import CDML_versions
+    from . import CDML_versions
     CDML_versions.transform_dom_to_version( doc, config.current_CDML_version)
     Store.app.paper.onread_id_sandbox_activate()
     added = []

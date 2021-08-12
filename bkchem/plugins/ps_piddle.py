@@ -18,9 +18,10 @@
 #--------------------------------------------------------------------------
 
 
-from piddle_lowlevel import piddle_exporter
-from tk2piddle import tk2piddle_ps
-from piddle import piddlePS
+from __future__ import absolute_import
+from .piddle_lowlevel import piddle_exporter
+from .tk2piddle import tk2piddle_ps
+from .piddle import piddlePS
 
 
 class ps_exporter( piddle_exporter):

@@ -22,23 +22,29 @@
 
 from __future__ import division
 
+from __future__ import absolute_import
+from __future__ import print_function
 from warnings import warn
-import dom_extensions
-from oasa import periodic_table as PT
+from . import dom_extensions
+from .oasa import periodic_table as PT
+from six.moves import map
+from six import unichr
+import six
+from six.moves import range
 try:
-  from oasa.oasa.known_groups import name_to_smiles
+  from .oasa.oasa.known_groups import name_to_smiles
 except ImportError:
-  from oasa.known_groups import name_to_smiles
-import groups_table as GT
-from special_parents import drawable_chem_vertex
-import data
+  from .oasa.known_groups import name_to_smiles
+from . import groups_table as GT
+from .special_parents import drawable_chem_vertex
+from . import data
 import re
-import debug
-import marks
+from . import debug
+from . import marks
 
-import oasa
+from . import oasa
 
-from singleton_store import Store, Screen
+from .singleton_store import Store, Screen
 
 
 ### NOTE: now that all classes are children of meta_enabled, so the read_standard_values method
@@ -89,7 +95,7 @@ class group( drawable_chem_vertex):
 
   def _set_symbol( self, symbol):
     try:
-      t = unicode( symbol)
+      t = six.text_type( symbol)
     except UnicodeDecodeError:
       t = symbol.decode( 'utf-8')
     self._symbol = t.encode('utf-8')
@@ -163,7 +169,7 @@ class group( drawable_chem_vertex):
   def _set_group_type( self, group_type):
     allowed_types = (None,"builtin","explicit","implicit","chain","general")
     if group_type not in allowed_types:
-      raise ValueError, "group_type must be one of "+ str( allowed_types) + "got %s" % group_type
+      raise ValueError("group_type must be one of "+ str( allowed_types) + "got %s" % group_type)
     self.__group_type = group_type
 
   group_type = property( _get_group_type, _set_group_type)
@@ -276,7 +282,7 @@ class group( drawable_chem_vertex):
     if self.group_type:
       a.setAttribute( 'group-type', self.group_type)
     else:
-      raise ValueError, "trying to save group without set group-type"
+      raise ValueError("trying to save group without set group-type")
 
     if self.font_size != self.paper.standard.font_size \
        or self.font_family != self.paper.standard.font_family \
@@ -290,7 +296,7 @@ class group( drawable_chem_vertex):
     if self.area_color != self.paper.standard.area_color:
       a.setAttribute( 'background-color', self.area_color)
     # needed to support transparent handling of molecular size
-    x, y, z = map( Screen.px_to_text_with_unit, self.get_xyz( real=1))
+    x, y, z = list(map( Screen.px_to_text_with_unit, self.get_xyz( real=1)))
     if self.z:
       dom_extensions.elementUnder( a, 'point', attributes=(('x', x), ('y', y), ('z', z)))
     else: 
@@ -343,7 +349,7 @@ class group( drawable_chem_vertex):
         self.group_graph = Store.gm.get_transformed_template( names.index( self.symbol), (x1,y1,x2,y2), type='atom1')
         replacement = self.group_graph.next_to_t_atom
       else:
-        print "unknown group %s" % a.symbol
+        print("unknown group %s" % a.symbol)
         return None
 
     elif self.group_type == "chain":

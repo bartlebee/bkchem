@@ -23,8 +23,9 @@
 
 """support for backward compatible CDML reading"""
 
-import dom_extensions as dom_ext      
-import data
+from __future__ import absolute_import
+from . import dom_extensions as dom_ext      
+from . import data
 
 class CDML_transformer_06_07:
 

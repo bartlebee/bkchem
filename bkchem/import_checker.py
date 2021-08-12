@@ -20,13 +20,14 @@
 
 """checks whether all important imports are available"""
 
+from __future__ import absolute_import
 __all__ = ['PIL_available','Pmw_available','PIL_state','PIL_prefix',
            'oasa_available','python_version_ok','python_version']
 
 
 Pmw_available = 1
 try:
-  import Pmw
+  from . import Pmw
 except ImportError:
   Pmw_available = 0
 
@@ -46,7 +47,7 @@ except ImportError:
 
 oasa_available = 1
 try:
-  import oasa
+  from . import oasa
 except ImportError:
   oasa_available = 0
 

@@ -20,44 +20,48 @@
 
 """the main application class resides here"""
 
-from Tkinter import *
-from paper import chem_paper
-import Pmw
-from xml_writer import SVG_writer
-from tkFileDialog import asksaveasfilename, askopenfilename
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves.tkinter import *
+from .paper import chem_paper
+from . import Pmw
+from .xml_writer import SVG_writer
+from six.moves.tkinter_filedialog import asksaveasfilename, askopenfilename
 import os
-import tkMessageBox
+import six.moves.tkinter_messagebox
 import xml.dom.minidom as dom
-import data
-import messages
-import dom_extensions
-import non_xml_writer
-import import_checker
-import dialogs
-import export
+from . import data
+from . import messages
+from . import dom_extensions
+from . import non_xml_writer
+from . import import_checker
+from . import dialogs
+from . import export
 import warnings
-import plugins
-import misc
-from edit_pool import editPool
-import pixmaps
+from . import plugins
+from . import misc
+from .edit_pool import editPool
+from . import pixmaps
 import types
-from temp_manager import template_manager
-import modes
-import interactors
-import os_support
-from id_manager import id_manager
+from .temp_manager import template_manager
+from . import modes
+from . import interactors
+from . import os_support
+from .id_manager import id_manager
 import string
 
-import oasa_bridge
-import plugins.plugin
-import config
-import logger
-from plugin_support import plugin_manager
+from . import oasa_bridge
+from . import plugins.plugin
+from . import config
+from . import logger
+from .plugin_support import plugin_manager
 
 
-from singleton_store import Store, Screen
-import oasa
-import molecule
+from .singleton_store import Store, Screen
+from . import oasa
+from . import molecule
+import six
+from six.moves import range
 
 
 
@@ -335,13 +339,13 @@ class BKChem( Tk):
 
   def init_basics( self):
     Pmw.initialise( self)
-    import pixmaps
+    from . import pixmaps
     if os.name == 'posix':
       try:
         self.option_add( "*font", ("-adobe-helvetica-medium-r-normal-*-12-*-*-*-p-*-iso10646-1"))
         ##self.option_add( "*font", ("-adobe-helvetica-medium-r-normal-*-*-100-*-*-*-*-*-*"))
       except:
-        print "cannot init default font"
+        print("cannot init default font")
     else:
       self.option_add( "*font", ("Helvetica",10,"normal"))
     # colors
@@ -382,8 +386,8 @@ class BKChem( Tk):
 
         # support for tuning of piddle
         if plugin.name.endswith( "(Piddle)"):
-          from plugins import tk2piddle
-          import tuning
+          from .plugins import tk2piddle
+          from . import tuning
           tk2piddle.tk2piddle.text_x_shift = tuning.Tuning.Piddle.text_x_shift
 
     self.paper = None
@@ -394,7 +398,7 @@ class BKChem( Tk):
 
   def init_plugins_menu( self):
     # PLUGINS
-    names = self.plugins.keys()
+    names = list(self.plugins.keys())
     names.sort()
     for name in names:
       plugin = self.plugins[ name]
@@ -579,7 +583,7 @@ class BKChem( Tk):
   def change_mode( self, tag):
     old_mode = self.mode
     self.mode = self.modes[ tag]
-    if type( old_mode) != types.StringType:
+    if type( old_mode) != bytes:
       old_mode.cleanup()
       self.mode.copy_settings( old_mode)
 
@@ -793,7 +797,7 @@ class BKChem( Tk):
       if self._save_according_to_extension( a):
         name = self.get_name_dic( a)
         if self.check_if_the_file_is_opened( name['name'], check_current=0):
-          tkMessageBox.showerror( _("File already opened!"), _("Sorry but you are already editing a file with this name (%s), please choose a different name or close the other file.") % name['name'])
+          six.moves.tkinter_messagebox.showerror( _("File already opened!"), _("Sorry but you are already editing a file with this name (%s), please choose a different name or close the other file.") % name['name'])
           return None
         self.paper.file_name = self.get_name_dic( a)
         self.notebook.tab( self.get_paper_tab_name( self.paper)).configure( text = self.paper.file_name['name'])
@@ -852,7 +856,7 @@ class BKChem( Tk):
     if replace == 0 the content of the file is added to the current content of the file"""
     if not file:
       if self.paper.changes_made and replace:
-	if tkMessageBox.askokcancel( _("Forget changes?"),_("Forget changes in currently visiting file?"), default='ok', parent=self) == 0:
+	if six.moves.tkinter_messagebox.askokcancel( _("Forget changes?"),_("Forget changes in currently visiting file?"), default='ok', parent=self) == 0:
           return 0
       a = askopenfilename( defaultextension = "",
                            initialdir = self.save_dir,
@@ -934,7 +938,7 @@ class BKChem( Tk):
           docs = doc.getElementsByTagName( 'cdml')
           if docs:
             # ask if we should proceed with incorrect namespace
-            proceed = tkMessageBox.askokcancel( _("Proceed?"),
+            proceed = six.moves.tkinter_messagebox.askokcancel( _("Proceed?"),
 						_("CDML data seem present in SVG but have wrong namespace. Proceed?"),
 						default='ok',
 						parent=self)
@@ -968,12 +972,12 @@ class BKChem( Tk):
       self.svg_dir, svg_file = os.path.split( a)
       try:
         inp = open( a, "w")
-      except IOError, x:
-        raise ValueError, "unable to open to file ", x
+      except IOError as x:
+        six.reraise(ValueError, "unable to open to file ", x)
       exporter = SVG_writer( self.paper)
       exporter.construct_dom_tree( self.paper.top_levels)
       dom_extensions.safe_indent( exporter.document.childNodes[0])
-      inp.write( unicode( exporter.document.toxml()).encode('utf-8'))
+      inp.write( six.text_type( exporter.document.toxml()).encode('utf-8'))
       inp.close()
       Store.log( _("exported to SVG file: ")+svg_file)
 
@@ -1042,7 +1046,7 @@ class BKChem( Tk):
     plugin = self.plugins[ pl_id]
     if not filename:
       if self.paper.changes_made:
-        if tkMessageBox.askokcancel( _("Forget changes?"),_("Forget changes in currently visiting file?"), default='ok', parent=self) == 0:
+        if six.moves.tkinter_messagebox.askokcancel( _("Forget changes?"),_("Forget changes in currently visiting file?"), default='ok', parent=self) == 0:
           return 0
       types = []
       if 'extensions' in plugin.__dict__ and plugin.extensions:
@@ -1072,16 +1076,16 @@ class BKChem( Tk):
         cdml = 1
         try:
           doc = importer.get_cdml_dom( filename)
-        except plugins.plugin.import_exception, detail:
-          tkMessageBox.showerror( _("Import error"), _("Plugin failed to import with following error:\n %s") % detail) 
+        except plugins.plugin.import_exception as detail:
+          six.moves.tkinter_messagebox.showerror( _("Import error"), _("Plugin failed to import with following error:\n %s") % detail) 
           return 0
       # others give directly a molecule object
       elif importer.gives_molecule:
         cdml = 0
         try:
           doc = importer.get_molecules( filename)
-        except plugins.plugin.import_exception, detail:
-          tkMessageBox.showerror( _("Import error"), _("Plugin failed to import with following error:\n %s") % detail) 
+        except plugins.plugin.import_exception as detail:
+          six.moves.tkinter_messagebox.showerror( _("Import error"), _("Plugin failed to import with following error:\n %s") % detail) 
       self.paper.clean_paper()
       if cdml == 0:
         # doc is a molecule
@@ -1128,7 +1132,7 @@ class BKChem( Tk):
         try:
           doc = exporter.write_to_file( a)
         except:
-          tkMessageBox.showerror( _("Export error"), _("Plugin failed to export with following error:\n %s") % sys.exc_value)
+          six.moves.tkinter_messagebox.showerror( _("Export error"), _("Plugin failed to export with following error:\n %s") % sys.exc_info()[1])
           return False
       else:
         doc = exporter.write_to_file( a)
@@ -1165,7 +1169,7 @@ class BKChem( Tk):
 
   def request( self, type, **options):
     """used by submodules etc. for requests of application wide resources such as pixmaps etc."""
-    import pixmaps
+    from . import pixmaps
     if type == 'pixmap':
       if 'name' in options:
         name = options['name']
@@ -1241,35 +1245,35 @@ Enter InChI:""")
       else:
         try:
           mol = oasa_bridge.read_inchi( text, self.paper)
-        except oasa.oasa_exceptions.oasa_not_implemented_error, e:
+        except oasa.oasa_exceptions.oasa_not_implemented_error as e:
           if not inchi:
-            tkMessageBox.showerror( _("Error processing %s") % 'InChI',
+            six.moves.tkinter_messagebox.showerror( _("Error processing %s") % 'InChI',
                                     _("Some feature of the submitted InChI is not supported.\n\nYou have most probaly submitted a multicomponent structure (having a . in the sumary layer"))
             return
           else:
-            raise ValueError, "the processing of inchi failed with following error %s" % sys.exc_value
-        except oasa.oasa_exceptions.oasa_inchi_error, e:
+            raise ValueError("the processing of inchi failed with following error %s" % sys.exc_info()[1])
+        except oasa.oasa_exceptions.oasa_inchi_error as e:
           if not inchi:
-            tkMessageBox.showerror( _("Error processing %s") % 'InChI',
+            six.moves.tkinter_messagebox.showerror( _("Error processing %s") % 'InChI',
                                     _("There was an error reading the submitted InChI.\n\nIf you are sure it is a valid InChI, please send me a bug report."))
             return
           else:
-            raise ValueError, "the processing of inchi failed with following error %s" % sys.exc_value
-        except oasa.oasa_exceptions.oasa_unsupported_inchi_version_error, e:
+            raise ValueError("the processing of inchi failed with following error %s" % sys.exc_info()[1])
+        except oasa.oasa_exceptions.oasa_unsupported_inchi_version_error as e:
           if not inchi:
-            tkMessageBox.showerror( _("Error processing %s") % 'InChI',
+            six.moves.tkinter_messagebox.showerror( _("Error processing %s") % 'InChI',
                                     _("The submitted InChI has unsupported version '%s'.\n\nYou migth try resubmitting with the version string (the first part of InChI) changed to '1'.") % e.version)
             return
           else:
-            raise ValueError, "the processing of inchi failed with following error %s" % sys.exc_value
+            raise ValueError("the processing of inchi failed with following error %s" % sys.exc_info()[1])
         except:
           
           if not inchi:
-            tkMessageBox.showerror( _("Error processing %s") % 'InChI',
-                                    _("The reading of InChI failed with following error:\n\n'%s'\n\nIf you are sure you have submitted a valid InChI, please send me a bug report.") % sys.exc_value)
+            six.moves.tkinter_messagebox.showerror( _("Error processing %s") % 'InChI',
+                                    _("The reading of InChI failed with following error:\n\n'%s'\n\nIf you are sure you have submitted a valid InChI, please send me a bug report.") % sys.exc_info()[1])
             return
           else:
-            raise ValueError, "the processing of inchi failed with following error %s" % sys.exc_value
+            raise ValueError("the processing of inchi failed with following error %s" % sys.exc_info()[1])
 
       self.paper.stack.append( mol)
       mol.draw()
@@ -1342,7 +1346,7 @@ Enter InChI:""")
 
   def start_server( self):
 
-    import http_server2 as http_server
+    from . import http_server2 as http_server
     
     server_address = ('', 8008)
     httpd = http_server.bkchem_http_server( server_address, http_server.bkchem_http_handler)
@@ -1359,7 +1363,7 @@ Enter InChI:""")
     CAL_NS = "http://beda.zirael.org/pokusy"
     server = SOAP.SOAPServer(("localhost", 8888))
     server.registerObject(self, CAL_NS)
-    print "Starting server..."
+    print("Starting server...")
     t = threading.Thread( target=server.serve_forever, name='soap')
     t.setDaemon( 1)
     t.start()
@@ -1405,7 +1409,7 @@ Enter InChI:""")
             sms.append(inchi)
             sms.append("InChIKey="+key)
             sms.append("")
-    except oasa.oasa_exceptions.oasa_inchi_error, e:
+    except oasa.oasa_exceptions.oasa_inchi_error as e:
       sms = [_("InChI generation failed,"),_("make sure the path to the InChI program is correct in 'Options/InChI program path'"), "", str( e)]
     except:
       sms = [_("Unknown error occured during InChI generation, sorry."), _("Please, try to make sure the path to the InChI program is correct in 'Options/InChI program path'")]
@@ -1423,7 +1427,7 @@ Enter InChI:""")
     # store logging settings
     if not self.in_batch_mode:
       # we do not save (or load) handling info when in batch mode
-      for key,value in Store.logger.handling.iteritems():
+      for key,value in six.iteritems(Store.logger.handling):
         Store.pm.add_preference( "logging_%s"%key, value)
     f = os_support.get_opened_config_file( "prefs.xml", level="personal", mode="w")
     if f:
@@ -1502,7 +1506,7 @@ Enter InChI:""")
       the_globals = {'App': Store.app,
                      'Args': opts[2:]}
 
-      execfile( plugin, the_globals)
+      exec(compile(open( plugin, "rb").read(), plugin, 'exec'), the_globals)
 
 
 

@@ -17,10 +17,13 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
+from __future__ import print_function
 import xml.dom.minidom as dom
-import dom_extensions
+from . import dom_extensions
 import types
 import os, sys
+import six
 
 
 
@@ -74,7 +77,7 @@ class pref_manager( object):
     top = doc.getElementsByTagName( "bkchem-prefs")[0]
     for child in dom_extensions.childNodesWithoutEmptySpaces( top):
       name = child.nodeName
-      itype = child.getAttribute( 'type') or unicode
+      itype = child.getAttribute( 'type') or six.text_type
       if itype in ("ListType", "TupleType", "DictType"):
         value = eval( dom_extensions.getAllTextFromElement( child))
       else:
@@ -82,7 +85,7 @@ class pref_manager( object):
         try:
           value = itype( dom_extensions.getAllTextFromElement( child))
         except:
-          print >> sys.stderr, "Preference manager: ignoring value %s of type %s" % (dom_extensions.getAllTextFromElement( child), itype)
+          print("Preference manager: ignoring value %s of type %s" % (dom_extensions.getAllTextFromElement( child), itype), file=sys.stderr)
           break
       self.add_preference( name, value)
 
@@ -96,7 +99,7 @@ class pref_manager( object):
     top = doc.createElement( "bkchem-prefs")
     doc.appendChild( top)
 
-    for k, v in self.data.iteritems():
+    for k, v in six.iteritems(self.data):
       itype = 'UnicodeType'
       for tn in types.__dict__:
         if type( v) == types.__dict__[ tn]:
@@ -105,7 +108,7 @@ class pref_manager( object):
       if itype == "StringType":
         v = v.decode('utf-8')
         itype = 'UnicodeType'
-      el = dom_extensions.textOnlyElementUnder( top, k, unicode( v),
+      el = dom_extensions.textOnlyElementUnder( top, k, six.text_type( v),
                                                 attributes = (("type", itype),))
     return doc
 
@@ -114,4 +117,4 @@ class pref_manager( object):
     try:
       f.write( self.write_to_dom().toxml().encode('utf-8'))
     except:
-      print "failed to write to the personal preference file"
+      print("failed to write to the personal preference file")

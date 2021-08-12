@@ -25,11 +25,13 @@ exported in __all__."""
 ## NOTE that undo uses a low-level access to objects in order to
 ## speed up the task.
 
-import misc
+from __future__ import absolute_import
+from . import misc
 import copy
 from types import *  #should be safe
 
 import inspect
+import six
 
 __all__= ['undo_manager']
 
@@ -143,7 +145,7 @@ class undo_manager:
           if not self.compare_records( i, state_rec1, state_rec2):
             return False
       elif type( obj) == DictType:
-        for i in obj.itervalues():
+        for i in six.itervalues(obj):
           if not self.compare_records( i, state_rec1, state_rec2):
             return False
       else:
@@ -218,7 +220,7 @@ class state_record:
       if type( obj) == ListType or type( obj) == set:
         [self.record_object( i) for i in obj]
       elif type( obj) == DictType:
-        [self.record_object( i) for i in obj.itervalues() if i]
+        [self.record_object( i) for i in six.itervalues(obj) if i]
       else:
         self.record_object( obj)
 
@@ -351,7 +353,7 @@ class state_record:
           if self.object_changed( i):
             return True
       elif type( obj) == DictType:
-        for i in obj.itervalues():
+        for i in six.itervalues(obj):
           if self.object_changed( i):
             return True
       else:

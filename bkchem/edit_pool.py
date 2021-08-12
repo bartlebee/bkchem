@@ -20,16 +20,18 @@
 
 """the 'edit pool' widget resides here"""
 
-from Tkinter import Frame, Button, Entry
-import Tkinter
+from __future__ import absolute_import
+from six.moves.tkinter import Frame, Button, Entry
+import six.moves.tkinter
 import config, re, string
-from groups_table import groups_table
-import misc
-from keysymdef import keysyms
+from .groups_table import groups_table
+from . import misc
+from .keysymdef import keysyms
 import os
 from xml.sax import saxutils
 
-from singleton_store import Store
+from .singleton_store import Store
+import six
 
 
 class editPool( Frame):
@@ -211,18 +213,18 @@ class editPool( Frame):
 
   def _tag_it( self, tag):
     if self.editPool.selection_present():
-      self.editPool.insert( Tkinter.SEL_FIRST, '<%s>' % tag)
-      self.editPool.insert( Tkinter.SEL_LAST, '</%s>' % tag)
+      self.editPool.insert( six.moves.tkinter.SEL_FIRST, '<%s>' % tag)
+      self.editPool.insert( six.moves.tkinter.SEL_LAST, '</%s>' % tag)
     else:
-      self.editPool.insert( Tkinter.INSERT, '<%s></%s>' % (tag, tag))
-      self.editPool.icursor( self.editPool.index( Tkinter.INSERT) - len( tag) - 3)
+      self.editPool.insert( six.moves.tkinter.INSERT, '<%s></%s>' % (tag, tag))
+      self.editPool.icursor( self.editPool.index( six.moves.tkinter.INSERT) - len( tag) - 3)
       
 
   def _key( self, event):
     if len(event.keysym) > 1 and event.keysym in keysyms:
       if self.editPool.selection_present():
         self.editPool.delete( "anchor", "insert")
-      self.editPool.insert( 'insert', unicode( keysyms[ event.keysym]))
+      self.editPool.insert( 'insert', six.text_type( keysyms[ event.keysym]))
       return "break"
 
 
@@ -233,13 +235,13 @@ class editPool( Frame):
 
   def _insertText( self, text):
     if text != None:
-      self.editPool.insert( Tkinter.INSERT, text)
+      self.editPool.insert( six.moves.tkinter.INSERT, text)
     self.grab_set()
 
 
 
 
-class special_character_menu( Tkinter.Menu):
+class special_character_menu( six.moves.tkinter.Menu):
 
   chars = {_("minus"): "&#8722;",
            _("arrow-left"): "&#x2190;",
@@ -250,8 +252,8 @@ class special_character_menu( Tkinter.Menu):
 
   def __init__( self, callback, **kw):
     self.callback = callback
-    Tkinter.Menu.__init__( self, Store.app, tearoff=0, **kw)
-    keys = self.chars.keys()
+    six.moves.tkinter.Menu.__init__( self, Store.app, tearoff=0, **kw)
+    keys = list(self.chars.keys())
     keys.sort()
     for k in keys:
       self.add_command( label=k, command=misc.lazy_apply( self.itemselected, (k,)))
@@ -263,6 +265,6 @@ class special_character_menu( Tkinter.Menu):
 
 
   def post( self, x, y):
-    Tkinter.Menu.post( self, x, y)
+    six.moves.tkinter.Menu.post( self, x, y)
     if os.name != 'nt':
       self.grab_set()

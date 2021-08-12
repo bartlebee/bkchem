@@ -22,14 +22,18 @@
 
 ## support for loading from outside of bkchem dir
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os_support, sys
+import six
+from six.moves import range
 sys.path.insert( 1, os_support.get_module_path())
 
 
 ### now starting for real
 
-from singleton_store import Store
-import pref_manager
+from .singleton_store import Store
+from . import pref_manager
 
 # at first preference manager
 Store.pm = pref_manager.pref_manager(
@@ -49,9 +53,9 @@ else:
   langs = [None]
 
 if user_lang == "en":
-  import __builtin__
-  __builtin__.__dict__['_'] = lambda m: m
-  __builtin__.__dict__['ngettext'] = gettext.ngettext
+  import six.moves.builtins
+  six.moves.builtins.__dict__['_'] = lambda m: m
+  six.moves.builtins.__dict__['ngettext'] = gettext.ngettext
   Store.lang = "en"
 else:
   Store.lang = None
@@ -69,66 +73,66 @@ else:
           rest, Store.lang = os.path.split( rest)
 
         tr = gettext.translation( 'BKChem', localedir=localedir, languages=lang)
-        tr.install(unicode=True, names=['ngettext'])
+        tr.install(six.text_type=True, names=['ngettext'])
         break
     if Store.lang:
       break
 
   if not Store.lang:
-    import __builtin__
-    __builtin__.__dict__['_'] = lambda m: m
-    __builtin__.__dict__['ngettext'] = gettext.ngettext
+    import six.moves.builtins
+    six.moves.builtins.__dict__['_'] = lambda m: m
+    six.moves.builtins.__dict__['ngettext'] = gettext.ngettext
     Store.lang = "en"
 
 
 
 
 
-import config
+from . import config
 
 if not config.debug:
   # checking of important modules availability
   # import modules
-  import import_checker
-  import messages
+  from . import import_checker
+  from . import messages
 
   # we need sets from the 2.3 version
   if not import_checker.python_version_ok:
-    print (messages.low_python_version_text % import_checker.python_version).encode('utf-8')
+    print((messages.low_python_version_text % import_checker.python_version).encode('utf-8'))
     sys.exit()
 
   # can't do without Pmw
   if not import_checker.Pmw_available:
-    print messages.no_pmw_text.encode( 'utf-8')
+    print(messages.no_pmw_text.encode( 'utf-8'))
     sys.exit()
 
   # oasa is the core now, we need it
   if not import_checker.oasa_available:
-    print messages.no_oasa_text.encode( 'utf-8')
+    print(messages.no_oasa_text.encode( 'utf-8'))
     sys.exit()
 
   
 #import Tkinter
-from main import BKChem
-from splash import Splash
-from singleton_store import Store
+from .main import BKChem
+from .splash import Splash
+from .singleton_store import Store
 
 myapp = BKChem()
 myapp.withdraw()
 
 if __name__ == '__main__':
 
-  import messages
+  from . import messages
   enc = sys.getfilesystemencoding()
   if not enc:
     enc = sys.getdefaultencoding()
-  opts = [unicode(i, encoding=enc) for i in sys.argv[1:]]
+  opts = [six.text_type(i, encoding=enc) for i in sys.argv[1:]]
 
   if "-v" in opts or "--version" in opts:
-    print "BKChem", config.current_BKChem_version
+    print("BKChem", config.current_BKChem_version)
     sys.exit()
   if "-h" in opts or "--help" in opts:
-    print messages.usage_text
+    print(messages.usage_text)
     sys.exit()
   if "-H" in opts:
     i = opts.index("-H")

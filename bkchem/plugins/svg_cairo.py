@@ -18,10 +18,12 @@
 #--------------------------------------------------------------------------
 
 
-from cairo_lowlevel import cairo_exporter
-from tk2cairo import tk2cairo
+from __future__ import absolute_import
+from .cairo_lowlevel import cairo_exporter
+from .tk2cairo import tk2cairo
 import cairo
 import sys
+from six.moves import map
 # try if there is SVGSurface in cairo
 _x = cairo.SVGSurface
 
@@ -36,7 +38,7 @@ class svg_cairo_exporter( cairo_exporter):
     cairo_exporter.__init__( self, paper, converter_class=tk2cairo)
 
   def init_surface( self):
-    w, h = map( int, map( round, self.pagesize))
+    w, h = list(map( int, list(map( round, self.pagesize))))
     return cairo.SVGSurface(self.filename.encode(sys.getfilesystemencoding()), w, h)
 
   def get_scaling( self, x, y):

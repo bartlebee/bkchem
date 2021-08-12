@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 from distutils.core import setup
 import glob
 import os
 import operator
-from bkchem import config
+from .bkchem import config
+from six.moves import map
 
 
 ## A few pre-setup hacks
@@ -13,12 +16,12 @@ if os.name != 'posix':
   sys.path.insert( 0, 'bkchem')
 
 # all the apicdoc directories and files
-apidocs = [('share/doc/bkchem/'+path[4:], map( os.path.join, len( filenames)*[path], filenames)) for (path, dirnames, filenames) in os.walk( 'doc/api')]
+apidocs = [('share/doc/bkchem/'+path[4:], list(map( os.path.join, len( filenames)*[path], filenames))) for (path, dirnames, filenames) in os.walk( 'doc/api')]
 
 # available languages to pack
 langs = [l for l in os.listdir( 'locale') if os.path.isdir( 'locale/'+l) and os.path.exists( 'locale/'+l+'/LC_MESSAGES/BKChem.mo')]
 
-print "found languages:", langs
+print("found languages:", langs)
 localizations = [('share/locale/'+lang+'/LC_MESSAGES', ['locale/'+lang+'/LC_MESSAGES/BKChem.mo']) for lang in langs]
 
 # should we strip something from in the scripts from the installation path (used in gentoo sandboxing etc.)
@@ -79,7 +82,7 @@ if len( sys.argv) > 1 and sys.argv[1] == 'install' and '--help' not in sys.argv:
   try:
     file = open( config_name, 'w')
   except:
-    print "ERROR: couldn't open the file %s for write" %  config_name
+    print("ERROR: couldn't open the file %s for write" %  config_name)
     sys.exit()
   file.write( "# the bkchem configuration file, do not edit!\n #(unless you are pretty sure that you know what you are doing, which even I am not)\n")
   file.write( 'BKCHEM_MODULE_PATH="%s"\n' % strip_path( os.path.join( py_dir, "bkchem")))
@@ -88,7 +91,7 @@ if len( sys.argv) > 1 and sys.argv[1] == 'install' and '--help' not in sys.argv:
   file.write( 'BKCHEM_IMAGE_PATH="%s"\n' % strip_path( os.path.join( data_dir, "share/bkchem/images")))
   file.write( 'BKCHEM_PLUGIN_PATH="%s"\n' % strip_path( os.path.join( data_dir, "share/bkchem/plugins")))
   file.close()
-  print "file %s created" % config_name
+  print("file %s created" % config_name)
 
 
   # the executable
@@ -96,21 +99,21 @@ if len( sys.argv) > 1 and sys.argv[1] == 'install' and '--help' not in sys.argv:
     try:
       os.mkdir( bin_dir)
     except:
-      print "ERROR: could not create directory %s" % bin_dir
+      print("ERROR: could not create directory %s" % bin_dir)
       sys.exit( 201)      
   exec_name = os.path.join( bin_dir, 'bkchem')
   try:
     file = open( exec_name, 'w')
   except:
-    print "ERROR: couldn't open the file %s for write" %  exec_name
+    print("ERROR: couldn't open the file %s for write" %  exec_name)
     sys.exit( 201)
   file.write( "#!/bin/sh\n")
   file.write( 'python %s "$@"\n' % strip_path( os.path.join( py_dir, "bkchem", "bkchem.py")))
   file.close()
-  print "file %s created" % exec_name
+  print("file %s created" % exec_name)
   try:
     os.chmod( os.path.join( bin_dir, 'bkchem'), 5+5*8+7*8*8)
   except:
-    print "ERROR: failed to make %s executable" % exec_name
+    print("ERROR: failed to make %s executable" % exec_name)
     sys.exit( 201)
-  print "file %s made executable" % exec_name
+  print("file %s made executable" % exec_name)

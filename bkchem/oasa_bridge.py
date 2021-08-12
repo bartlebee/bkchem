@@ -17,21 +17,23 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
+from functools import reduce
 oasa_available = 1
 try:
-  import oasa
+  from . import oasa
 except ImportError:
   oasa_available = 0
 
-import molecule
-import bond
-import atom
+from . import molecule
+from . import bond
+from . import atom
 
 import math
 import operator
 
-from singleton_store import Screen
-from oasa import transform3d
+from .singleton_store import Screen
+from .oasa import transform3d
 
 
 def read_smiles( text, paper):

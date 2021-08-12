@@ -20,20 +20,24 @@
 """here reside functions that implement a glue between application or paper
 (main.py or paper.py) and the dialogs (dialogs.py)"""
 
-from molecule import molecule
-import Pmw
-import tkMessageBox
-import validator
-import widgets
+from __future__ import absolute_import
+from .molecule import molecule
+from . import Pmw
+import six.moves.tkinter_messagebox
+from . import validator
+from . import widgets
 import xml
-import os_support
+from . import os_support
 import os
-import dialogs
+from . import dialogs
 
-import bkchem_exceptions as excs
-from singleton_store import Store
-from atom import atom
+from . import bkchem_exceptions as excs
+from .singleton_store import Store
+from .atom import atom
 import operator
+from six.moves import map
+import six
+from functools import reduce
 
 
 def ask_name_for_selected( paper):
@@ -42,7 +46,7 @@ def ask_name_for_selected( paper):
   ms = [o for o in top_levels if isinstance( o, molecule)]
 
   if not ms:
-    tkMessageBox.showerror( _("No molecule selected."),
+    six.moves.tkinter_messagebox.showerror( _("No molecule selected."),
                             _("At least one molecule must be selected. Please select it."))
     return
 
@@ -74,12 +78,12 @@ def ask_id_for_selected( paper):
   ms = [o for o in top_levels if isinstance( o, molecule)]
 
   if not ms:
-    tkMessageBox.showerror( _("No molecule selected."),
+    six.moves.tkinter_messagebox.showerror( _("No molecule selected."),
                             _("At least one molecule must be selected. Please select it."))
     return 
 
   if len( ms) > 1:
-    tkMessageBox.showerror( _("Only one molecule should be selected."),
+    six.moves.tkinter_messagebox.showerror( _("Only one molecule should be selected."),
                             _("ID must be unique value, therefore it is obviously possible to set it to one molecule only. Please select only one molecule"))
     return
 
@@ -104,7 +108,7 @@ def ask_id_for_selected( paper):
     collision = 0
     for mol in paper.molecules:
       if mol != m and mol.id == id:
-        tkMessageBox.showerror( _("ID collision"),
+        six.moves.tkinter_messagebox.showerror( _("ID collision"),
                                 _("This ID is already used, use a different one"))
         collision = 1
         break
@@ -123,20 +127,20 @@ def check_validity( mols):
   val = validator.validator()
   val.validate( mols)
   if val.report.text_atoms:
-    import tkMessageBox
-    tkMessageBox.showerror( _("Validity error"),
+    import six.moves.tkinter_messagebox
+    six.moves.tkinter_messagebox.showerror( _("Validity error"),
                             _("Sorry but your drawing includes 'text atoms'\n - atoms with no chemical sense.") + "\n\n" +
                             _("It is not possible to export them.") + "\n\n" +
                             _("For details check the chemistry with '%s/%s'.") % (_("Chemistry"), _("Check chemistry")))
     return 0
   if val.report.exceeded_valency:
-    import tkMessageBox
-    tkMessageBox.showwarning( _("Validity warning"),
+    import six.moves.tkinter_messagebox
+    six.moves.tkinter_messagebox.showwarning( _("Validity warning"),
                               _("Your drawing includes some atoms with exceeded valency.") + "\n\n" + 
                               _("For details check the chemistry with '%s/%s'.") % (_("Chemistry"), _("Check chemistry")))
   if val.report.group_atoms:
-    import tkMessageBox
-    yes = tkMessageBox.askokcancel( _("Expand groups?"),
+    import six.moves.tkinter_messagebox
+    yes = six.moves.tkinter_messagebox.askokcancel( _("Expand groups?"),
                                     _("Your drawing includes some groups.") + "\n\n" + 
                                     _("These must be expanded in order to get chemicaly valid drawing. The expansion could be undone afterwards.") + "\n\n"+
                                     _("Proceed with expansion?"))
@@ -173,7 +177,7 @@ def ask_display_form_for_selected( paper):
   ms = [o for o in top_levels if isinstance( o, molecule)]
 
   if not ms:
-    tkMessageBox.showerror( _("No molecule selected."),
+    six.moves.tkinter_messagebox.showerror( _("No molecule selected."),
                             _("At least one molecule must be selected. Please select it."))
     return
 
@@ -191,7 +195,7 @@ def ask_display_form_for_selected( paper):
   res = dial.activate()
   if res == _('OK'):
     df = input.editPool.get()
-    df = unicode( df).encode( 'utf-8')
+    df = six.text_type( df).encode( 'utf-8')
     ## catch not well-formed text
     try:
       xml.sax.parseString( "<a>%s</a>" % df, xml.sax.ContentHandler())
@@ -202,7 +206,7 @@ def ask_display_form_for_selected( paper):
       try:
         xml.sax.parseString( "<a>%s</a>" % df, xml.sax.ContentHandler())
       except xml.sax.SAXParseException:        
-        tkMessageBox.showerror( _("Parse Error"), _("Unable to parse the text-\nprobably problem with input encoding!"))
+        six.moves.tkinter_messagebox.showerror( _("Parse Error"), _("Unable to parse the text-\nprobably problem with input encoding!"))
         Store.app.paper.bell()
         return
   else:
@@ -227,7 +231,7 @@ def save_as_template( paper):
     if not mol.name:
       missing[ 'name'] = missing.get( 'name', 0) + 1
 
-  errors = missing.has_key( 'atom') or missing.has_key('name')
+  errors = 'atom' in missing or 'name' in missing
 
   if missing:
     dialog = Pmw.TextDialog( paper, title=_("Template summary"))
@@ -236,19 +240,19 @@ def save_as_template( paper):
     if errors:
       dialog.insert( 'end', _("Errors"), 'headline')
       dialog.insert( 'end', "\n")
-    if missing.has_key( 'atom'):
+    if 'atom' in missing:
       dialog.insert('end', ngettext(
         "%d molecule have no template atom specified",
         "%d molecules have no template atom specified",
         int(missing['atom'])) % missing['atom'])
       dialog.insert( 'end', "\n")
-    if missing.has_key('name'):
+    if 'name' in missing:
       dialog.insert('end', ngettext(
         "%d molecule have no name specified",
         "%d molecules have no name specified",
         int(missing['name'])) % missing['name'])
       dialog.insert( 'end', "\n")
-    if missing.has_key( 'bond'):
+    if 'bond' in missing:
       dialog.insert( 'end', "\n")
       dialog.insert( 'end', _("Warnings"), 'headline')
       dialog.insert( 'end', "\n")
@@ -278,7 +282,7 @@ def save_as_template( paper):
       if path:
         path = os_support.create_personal_config_directory( "templates")
       if not path:
-        tkMessageBox.showerror( _("Directory creation failed."),
+        six.moves.tkinter_messagebox.showerror( _("Directory creation failed."),
                                 _("It was not possible to create the personal directory %s.") % os_support.get_personal_config_directory())
         return
 
@@ -299,7 +303,7 @@ def save_as_template( paper):
       name = os.path.join( path ,name) + '.svg'
 
       if os.path.exists( name):
-        q = tkMessageBox.askokcancel( _("The file already exists."),
+        q = six.moves.tkinter_messagebox.askokcancel( _("The file already exists."),
                                       _("Template with this name already exists (path %s).\nShould I rewrite it?") % name)
         if q:
           return name
@@ -381,7 +385,7 @@ def select_language( paper):
         Store.pm.remove_preference( "lang")
       else:
         Store.pm.add_preference( "lang", a.languages[lang[0]])
-      tkMessageBox.showinfo( _("Info"),
+      six.moves.tkinter_messagebox.showinfo( _("Info"),
                              _("The selected language will be used the next time you start BKChem."))
 
 
@@ -399,7 +403,7 @@ def convert_selected_to_linear_fragment( paper):
     except ValueError:
       Store.log( _("The selection does not define connected subgraph"), message_type="error")
       return
-    except excs.bkchem_graph_error, e:
+    except excs.bkchem_graph_error as e:
       if e.id == "circular_selection":
         Store.log( e.value, message_type="error")
       else:
@@ -475,7 +479,7 @@ def atoms_to_linear_fragment( mol, vs, bond_length=10):
     return changes
 
   else:
-    raise ValueError, "the vertices do not define connected subgraph"
+    raise ValueError("the vertices do not define connected subgraph")
 
 
 
@@ -487,7 +491,7 @@ def compute_oxidation_number( paper):
     Store.log( _("Groups must be expanded to compute oxidation number for them."), message_type="hint")
     logged = True
   # we have to check if the neighbors of the atoms we are processing are not groups or so...
-  ns = list( reduce( operator.or_, map(set, [a.neighbors for a in paper.selected_atoms])))
+  ns = list( reduce( operator.or_, list(map(set, [a.neighbors for a in paper.selected_atoms]))))
   v.validate( ns)
   if v.report.group_atoms or v.report.text_atoms:
     Store.log( _("Unexpanded groups or text-only atoms may cause incorrect computation of oxidation number."), message_type="warning")

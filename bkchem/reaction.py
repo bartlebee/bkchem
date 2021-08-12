@@ -18,10 +18,12 @@
 #--------------------------------------------------------------------------
 
 
-import dom_extensions
+from __future__ import absolute_import
+from . import dom_extensions
 import sys
     
-from singleton_store import Store
+from .singleton_store import Store
+from six.moves import range
 
 
 

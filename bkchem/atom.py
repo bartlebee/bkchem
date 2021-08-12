@@ -22,18 +22,21 @@
 
 from __future__ import division
 
+from __future__ import absolute_import
 from warnings import warn
-import dom_extensions
+from . import dom_extensions
 import operator
-from oasa import periodic_table as PT
-import marks
-from special_parents import drawable_chem_vertex
-import data
+from .oasa import periodic_table as PT
+from . import marks
+from .special_parents import drawable_chem_vertex
+from . import data
 import re
-import debug
+from . import debug
 
-import oasa
-from singleton_store import Screen, Store
+from . import oasa
+from .singleton_store import Screen, Store
+from six.moves import map
+from six import unichr
 
 
 ### NOTE: now that all classes are children of meta_enabled, so the read_standard_values method
@@ -264,7 +267,7 @@ class atom( drawable_chem_vertex, oasa.atom):
       form = PT.text_to_hydrogenated_atom( name)
       if form:
         # it is!
-        a = form.keys()
+        a = list(form.keys())
         a.remove( 'H')
         if occupied_valency == None:
           valency = self.occupied_valency
@@ -448,7 +451,7 @@ class atom( drawable_chem_vertex, oasa.atom):
     if self.area_color != self.paper.standard.area_color:
       a.setAttribute( 'background-color', self.area_color)
     # needed to support transparent handling of molecular size
-    x, y, z = map( Screen.px_to_text_with_unit, self.get_xyz( real=1))
+    x, y, z = list(map( Screen.px_to_text_with_unit, self.get_xyz( real=1)))
     if self.z:
       dom_extensions.elementUnder( a, 'point', attributes=(('x', x), ('y', y), ('z', z)))
     else: 
@@ -578,7 +581,7 @@ class atom( drawable_chem_vertex, oasa.atom):
       return None
     match = splitter.match( txt.lower())
     if match:
-      if match.group(1).capitalize() not in PT.periodic_table or 'query' in PT.periodic_table[ match.group(1).capitalize()].keys():
+      if match.group(1).capitalize() not in PT.periodic_table or 'query' in list(PT.periodic_table[ match.group(1).capitalize()].keys()):
         return None
       if match.group(3) == '+':
         charge = match.group(2) and int( match.group(2)) or 1

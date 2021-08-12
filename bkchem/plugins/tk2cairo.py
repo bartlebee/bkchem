@@ -18,13 +18,18 @@
 #--------------------------------------------------------------------------
 
 
+from __future__ import absolute_import
+from __future__ import print_function
 import cairo
-import tkFont
+import six.moves.tkinter_font
 from oasa import transform
 from oasa import geometry
 import math
 import misc
 import string
+from six.moves import map
+import six
+from six.moves import range
 
 
 class tk2cairo:
@@ -67,7 +72,7 @@ class tk2cairo:
       return False
     else:
       colors = self.paper.winfo_rgb( color)
-      self.context.set_source_rgb( *map( lambda x: x/65535.0, colors))
+      self.context.set_source_rgb( *[x/65535.0 for x in colors])
       return True
 
 
@@ -92,7 +97,7 @@ class tk2cairo:
       if not "no_export" in self.paper.gettags( item):
         method = "_draw_" + self.paper.type( item)
         if not hasattr( self, method):
-          print "method to draw %s is not implemented" % self.paper.type( item)
+          print("method to draw %s is not implemented" % self.paper.type( item))
         else:
           getattr( self, method)( item)
     self.context.show_page()
@@ -150,10 +155,10 @@ class tk2cairo:
 
 
   def _draw_text( self, item):
-    text = unicode( self.paper.itemcget( item, 'text')).encode('utf-8')
+    text = six.text_type( self.paper.itemcget( item, 'text')).encode('utf-8')
     x1, y1, x2, y2 = self.paper.bbox( item)
     x1, y1, x2, y2 = self.transformer.transform_4( (x1+1, y1, x2-2, y2))
-    afont = tkFont.Font( font=self.paper.itemcget( item, 'font'))
+    afont = six.moves.tkinter_font.Font( font=self.paper.itemcget( item, 'font'))
     conf = afont.config()
     font_family = conf['family']
     slant =  'italic' in conf['slant'] and cairo.FONT_SLANT_ITALIC or cairo.FONT_SLANT_NORMAL
@@ -266,7 +271,7 @@ class tk2cairo:
   def _create_arrow( self, shape, start, to, color):
     """creates an arrow with 'shape' pointing from 'start' to 'to' filled with 'color'
     and returns x, y - where the to should be to not to overlay the arrow"""
-    a, b, c = map( float, shape.split())
+    a, b, c = list(map( float, shape.split()))
     points = [a,0, a-b,c, 0,0, a-b,-c]
     ang = geometry.clockwise_angle_from_east( to[0]-start[0], to[1]-start[1])
     tr = transform.transform()

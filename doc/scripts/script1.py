@@ -1,10 +1,12 @@
 
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 
 # at first we check the command line
 if len( sys.argv) <= 1:
-  print "you have to supply a filename"
+  print("you have to supply a filename")
   sys.exit()
 
 # then we import bkchem and threading

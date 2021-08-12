@@ -22,25 +22,27 @@
 
 from __future__ import division
 
-import Tkinter
-import tkColorChooser
-import tkFont
+from __future__ import absolute_import
+import six.moves.tkinter
+import six.moves.tkinter_colorchooser
+import six.moves.tkinter_font
 import math
-from oasa import geometry
-import Pmw
-import data
-import config
+from .oasa import geometry
+from . import Pmw
+from . import data
+from . import config
 import re
-import misc
-import tkFileDialog
+from . import misc
+import six.moves.tkinter_filedialog
 import os.path
-from keysymdef import keysyms
+from .keysymdef import keysyms
 
-from singleton_store import Store
+from .singleton_store import Store
+import six
 
 
 
-class ColorButton( Tkinter.Button):
+class ColorButton( six.moves.tkinter.Button):
   """button used for color selection; has the choosen color in background and
   when pressed opens tkColorChooser.askcolor dialog"""
 
@@ -48,7 +50,7 @@ class ColorButton( Tkinter.Button):
     """well, init..."""
     self.master = master
     self.set_color( color)
-    Tkinter.Button.__init__( self, master=master, command=self._select_color,
+    six.moves.tkinter.Button.__init__( self, master=master, command=self._select_color,
                              background=self.color, activebackground=self.color,
                              foreground=self.foreground_color, activeforeground=self.foreground_color,
                              text=text)
@@ -73,9 +75,9 @@ class ColorButton( Tkinter.Button):
 
   def _select_color( self):
     if self.color:
-      color = tkColorChooser.askcolor( self.color)
+      color = six.moves.tkinter_colorchooser.askcolor( self.color)
     else:
-      color = tkColorChooser.askcolor()
+      color = six.moves.tkinter_colorchooser.askcolor()
     if color[1]:
       self.set_color( color[1])
       self.rgb = color[0]
@@ -84,16 +86,16 @@ class ColorButton( Tkinter.Button):
       
 
 
-class ColorButtonWithTransparencyChecker( Tkinter.Frame, object):
+class ColorButtonWithTransparencyChecker( six.moves.tkinter.Frame, object):
 
   def __init__( self, master=None, color=None, text=''):
     """well, init..."""
-    Tkinter.Frame.__init__( self, master)
+    six.moves.tkinter.Frame.__init__( self, master)
     self.master = master
     self.button = ColorButton( master=self, color=color, text=text)
-    self.transparent = Tkinter.IntVar()
+    self.transparent = six.moves.tkinter.IntVar()
     self.transparent.set( color == '' and 1 or 0)
-    self.checker = Tkinter.Checkbutton( self,
+    self.checker = six.moves.tkinter.Checkbutton( self,
                                         text=_("Transparent"),
                                         variable=self.transparent,
                                         command=self._set_trasparency)
@@ -103,7 +105,7 @@ class ColorButtonWithTransparencyChecker( Tkinter.Frame, object):
   def pack( self, **kw):
     self.button.pack( anchor="w", padx=0, pady=0)
     self.checker.pack( anchor="w", padx=0, pady=0)
-    Tkinter.Frame.pack( self, **kw)
+    six.moves.tkinter.Frame.pack( self, **kw)
 
 
   def _get_color( self):
@@ -124,12 +126,12 @@ class ColorButtonWithTransparencyChecker( Tkinter.Frame, object):
 
 
 
-class GraphicalAngleChooser( Tkinter.Frame):
+class GraphicalAngleChooser( six.moves.tkinter.Frame):
 
   def __init__( self, parent, angle, line_color="#000", fill_color="#ffffff"):
 
-    Tkinter.Frame.__init__( self, parent)
-    self.canvas = Tkinter.Canvas( self, width=60, height=60)
+    six.moves.tkinter.Frame.__init__( self, parent)
+    self.canvas = six.moves.tkinter.Canvas( self, width=60, height=60)
     self.canvas.bind('<Button-1>', self._click)
     self.canvas.bind('<B1-Motion>', self._click)
     self.canvas.pack()
@@ -189,7 +191,7 @@ class FontSizeChooser( Pmw.Counter):
 class FontFamilyChooser( Pmw.ScrolledListBox):
 
   def __init__( self, parent, value):
-      available_families = list( tkFont.families())
+      available_families = list( six.moves.tkinter_font.families())
       available_families.sort()
       available_families.insert(-1, '')
       for fnt in data.always_available_fonts:
@@ -257,12 +259,12 @@ class RatioCounter( Pmw.Counter):
 
 
 
-class ValueWithUnitParent( Tkinter.Frame):
+class ValueWithUnitParent( six.moves.tkinter.Frame):
 
   def __init__( self, parent, value, counter, label=None, units={}):
     """the parent is standard widget parent, counter should be Pmw.Counter instance,
     units is a dictionary of dictionaries keyed by unit name with ratio, round and increment"""
-    Tkinter.Frame.__init__( self, parent)
+    six.moves.tkinter.Frame.__init__( self, parent)
     self.units = units
     v, self._recent_unit = misc.split_number_and_unit( value)
     # the counter widget
@@ -272,10 +274,10 @@ class ValueWithUnitParent( Tkinter.Frame):
     if self._recent_unit:
       self.counter['increment'] = self.units[self._recent_unit]['increment']
     else:
-      self._recent_unit = units.keys()[0]
+      self._recent_unit = list(units.keys())[0]
     self.counter.pack( side='left')
     # the unit selection widget
-    us = units.keys()
+    us = list(units.keys())
     us.sort()
     self.unit = Pmw.OptionMenu( self, items=us, initialitem=self._recent_unit, command=self.unit_changed)
     self.unit.pack( side='left')
@@ -319,22 +321,22 @@ class LengthChooser( ValueWithUnitParent):
 
 # a meta dialog for opening files
 
-class FileSelectionEntry( Tkinter.Frame):
+class FileSelectionEntry( six.moves.tkinter.Frame):
 
   def __init__( self, parent, prompt="", value="", filetypes=(), type="open"):
-    Tkinter.Frame.__init__( self, parent)
+    six.moves.tkinter.Frame.__init__( self, parent)
     self.parent = parent
     self.value = value
     self.filetypes = filetypes
     self.type = type
     
-    Tkinter.Label( self, text=prompt).pack( side="left", padx=0)
+    six.moves.tkinter.Label( self, text=prompt).pack( side="left", padx=0)
 
-    self.entry = Tkinter.Entry( self, width=40)
+    self.entry = six.moves.tkinter.Entry( self, width=40)
     self.entry.pack( side="left", padx=0)
     self.update_entry()
 
-    self.button = Tkinter.Button( self,
+    self.button = six.moves.tkinter.Button( self,
                                   text = _("Browse"),
                                   command = self.browse)
     self.button.pack( side="left", padx=0)
@@ -342,13 +344,13 @@ class FileSelectionEntry( Tkinter.Frame):
 
   def browse( self):
     if self.type == "open":
-      a = tkFileDialog.askopenfilename( defaultextension = "",
+      a = six.moves.tkinter_filedialog.askopenfilename( defaultextension = "",
                                         initialdir = os.path.dirname( self.value),
                                         title = _("Select the file"),
                                         parent = self.parent,
                                         filetypes = self.filetypes)
     else:
-      a = tkFileDialog.asksaveasfilename( defaultextension = "",
+      a = six.moves.tkinter_filedialog.asksaveasfilename( defaultextension = "",
                                           initialdir = os.path.dirname( self.value),
                                           title = _("File to create"),
                                           parent = self.parent,
@@ -390,15 +392,15 @@ class FileSelectionWithText( Pmw.Dialog):
 
 
 
-class HTMLLikeInput( Tkinter.Frame, object):
+class HTMLLikeInput( six.moves.tkinter.Frame, object):
 
   font_decorations = ('italic', 'bold', 'subscript', 'superscript')
   font_decorations_to_html = {'italic':'i', 'bold':'b', 'subscript':'sub', 'superscript':'sup'}
 
 
   def __init__( self, master, **kw):
-    Tkinter.Frame.__init__( self, master, **kw)
-    self.editPool = Tkinter.Entry( self, width=60)
+    six.moves.tkinter.Frame.__init__( self, master, **kw)
+    self.editPool = six.moves.tkinter.Entry( self, width=60)
     self.editPool.pack( side='left')
 
     self.editPool.bind("<KeyPress>", self._key)
@@ -406,13 +408,13 @@ class HTMLLikeInput( Tkinter.Frame, object):
     # subscript numbers
     pix = Store.app.request( 'pixmap', name='subnum')
     if pix:
-      self.numbersToSubButton = Tkinter.Button( self,
+      self.numbersToSubButton = six.moves.tkinter.Button( self,
                                                 image=pix,
                                                 command=self._numbersToSubButtonPressed,
                                                 bd=config.border_width)
       Store.app.balloon.bind( self.numbersToSubButton, _('Subscript numbers'))
     else:
-      self.numbersToSubButton = Tkinter.Button( self,
+      self.numbersToSubButton = six.moves.tkinter.Button( self,
                                                text=_('Sub numbers'),
                                                command=self._numbersToSubButtonPressed,
                                                bd=config.border_width)
@@ -421,13 +423,13 @@ class HTMLLikeInput( Tkinter.Frame, object):
     # superscript charges
     pix = Store.app.request( 'pixmap', name='supcharge')
     if pix:
-      self.chargesToSupButton = Tkinter.Button( self,
+      self.chargesToSupButton = six.moves.tkinter.Button( self,
                                                 image=pix,
                                                 command=self._chargesToSupButtonPressed,
                                                 bd=config.border_width)
       Store.app.balloon.bind( self.chargesToSupButton, _('Superscript charges'))
     else:
-      self.chargesToSupButton = Tkinter.Button( self,
+      self.chargesToSupButton = six.moves.tkinter.Button( self,
                                                 text=_('Sup charges'),
                                                 command=self._chargesToSupButtonPressed,
                                                 bd=config.border_width)
@@ -437,13 +439,13 @@ class HTMLLikeInput( Tkinter.Frame, object):
     for i in self.font_decorations:
       pix = Store.app.request( 'pixmap', name=i)
       if pix:
-        self.__dict__[ i] = Tkinter.Button( self,
+        self.__dict__[ i] = six.moves.tkinter.Button( self,
                                     image=pix,
                                     command=misc.lazy_apply( self._tag_it, (self.font_decorations_to_html[i],)),
                                     bd=config.border_width)
         Store.app.balloon.bind( self.__dict__[i], i)
       else:
-        self.__dict__[ i] = Tkinter.Button( self,
+        self.__dict__[ i] = six.moves.tkinter.Button( self,
                                     text=i,
                                     command=misc.lazy_apply( self._tag_it, (self.font_decorations_to_html[i],)),
                                     bd=config.border_width)
@@ -469,18 +471,18 @@ class HTMLLikeInput( Tkinter.Frame, object):
 
   def _tag_it( self, tag):
     if self.editPool.selection_present():
-      self.editPool.insert( Tkinter.SEL_FIRST, '<%s>' % tag)
-      self.editPool.insert( Tkinter.SEL_LAST, '</%s>' % tag)
+      self.editPool.insert( six.moves.tkinter.SEL_FIRST, '<%s>' % tag)
+      self.editPool.insert( six.moves.tkinter.SEL_LAST, '</%s>' % tag)
     else:
-      self.editPool.insert( Tkinter.INSERT, '<%s></%s>' % (tag, tag))
-      self.editPool.icursor( self.editPool.index( Tkinter.INSERT) - len( tag) - 3)
+      self.editPool.insert( six.moves.tkinter.INSERT, '<%s></%s>' % (tag, tag))
+      self.editPool.icursor( self.editPool.index( six.moves.tkinter.INSERT) - len( tag) - 3)
       
 
   def _key( self, event):
     if len(event.keysym) > 1 and event.keysym in keysyms:
       if self.editPool.selection_present():
         self.editPool.delete( "anchor", "insert")
-      self.editPool.insert( 'insert', unicode( keysyms[ event.keysym]))
+      self.editPool.insert( 'insert', six.text_type( keysyms[ event.keysym]))
       return "break"
 
 

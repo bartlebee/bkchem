@@ -19,6 +19,7 @@
 
 
 
+from __future__ import absolute_import
 import os
 import sys
 
@@ -160,7 +161,7 @@ def get_module_path():
 def get_opened_config_file( name, level="global", mode="r"):
   fname = get_config_filename( name, level=level, mode=mode)
   if fname:
-    f = file( fname, mode=mode)
+    f = open( fname, mode=mode)
     return f
 
 
@@ -176,7 +177,7 @@ def get_bkchem_private_dir():
   dir = ""
   if os.name == "nt":
     try:
-      import _winreg as reg
+      import six.moves.winreg as reg
       dir = reg.QueryValueEx( reg.OpenKey( reg.HKEY_CURRENT_USER, "Volatile Environment"), "APPDATA")[0]
       dir = os.path.join( dir, "bkchem")
     except EnvironmentError:

@@ -18,6 +18,7 @@
 #--------------------------------------------------------------------------
 
 
+from __future__ import absolute_import
 to_serialize = { 'paper': ('molecules',),
                  'molecule': ('atoms','bonds'),
                  'atom': ('x','y','name','type'),
@@ -41,7 +42,7 @@ def serialize( o, doc, parent_element):
       # serialize it
       if type(v) == types.InstanceType: 
         serialize( v, doc, e)
-      elif type(v) in (types.ListType, types.TupleType):
+      elif type(v) in (list, tuple):
         [serialize( j, doc, e) for j in v]
       else:
         e.setAttribute( i, str( v))

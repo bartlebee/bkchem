@@ -23,7 +23,8 @@
 
 """PostScript Export plugin"""
 
-import plugin
+from __future__ import absolute_import
+from . import plugin
 
 class PS_exporter( plugin.exporter):
   """Exports Encapsulated PostScript files. It uses a builtin (Tk) functions for PS export.

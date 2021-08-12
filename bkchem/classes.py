@@ -24,20 +24,24 @@ also imports atom, bond and molecule from historical reasons :)"""
 from __future__ import division
 from __future__ import generators
 
+from __future__ import absolute_import
 from math import atan2, sin, cos, pi, sqrt
-import misc
+from . import misc
 from warnings import warn
-from ftext import ftext
-import dom_extensions
+from .ftext import ftext
+from . import dom_extensions
 import xml.dom.minidom as dom
 import operator
-import tkFont
-from parents import meta_enabled, container, with_line, text_like, line_colored
-from parents import area_colored, point_drawable, interactive, drawable, top_level
-from parents import child, with_font
-from reaction import reaction
+import six.moves.tkinter_font
+from .parents import meta_enabled, container, with_line, text_like, line_colored
+from .parents import area_colored, point_drawable, interactive, drawable, top_level
+from .parents import child, with_font
+from .reaction import reaction
 
-from singleton_store import Screen
+from .singleton_store import Screen
+import six
+from six.moves import map
+from functools import reduce
 
 ### NOTE: now that all classes are children of meta_enabled, so the read_standard_values method
 ### is called during their __init__ (in fact meta_enabled.__init__), therefor these values are
@@ -73,7 +77,7 @@ class standard:
 
 
   def __eq__( self, other):
-    for (k,v) in self.__dict__.iteritems():
+    for (k,v) in six.iteritems(self.__dict__):
       if str( v) != str( other.__dict__[ k]):
         return 0
     return 1
@@ -246,7 +250,7 @@ class point( point_drawable, interactive, child):
     doc is the parent document which is used for element creation
     (the returned element is not inserted into the document)"""
     pnt = doc.createElement('point')
-    x, y = map( Screen.px_to_text_with_unit, self.paper.screen_to_real_coords( (self.x, self.y)))
+    x, y = list(map( Screen.px_to_text_with_unit, self.paper.screen_to_real_coords( (self.x, self.y))))
     dom_extensions.setAttributes( pnt, (('x', x),
                                         ('y', y)))
     return pnt
@@ -418,7 +422,7 @@ class plus(meta_enabled, interactive, point_drawable, with_font, area_colored, t
     self.update_font()
 
   def update_font( self):
-    self.font = tkFont.Font( family=self.font_family, size=self.font_size)
+    self.font = six.moves.tkinter_font.Font( family=self.font_family, size=self.font_size)
 
   def lift( self):
     if self.selector:
@@ -613,7 +617,7 @@ class text( meta_enabled, interactive, point_drawable, text_like, area_colored, 
     return self._ftext
 
   def _set_xml_ftext( self, text):
-    if not type( text) == unicode:
+    if not type( text) == six.text_type:
       text = text.decode( 'utf-8')
     self._ftext = text
 
@@ -629,7 +633,7 @@ class text( meta_enabled, interactive, point_drawable, text_like, area_colored, 
 
   def update_font( self):
     #if 'font_family' in self.__dict__ and 'font_size' in self.__dict__:
-    self.font = tkFont.Font( family=self.font_family, size=self.font_size)
+    self.font = six.moves.tkinter_font.Font( family=self.font_family, size=self.font_size)
 
 
 

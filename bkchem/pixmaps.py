@@ -20,9 +20,10 @@
 
 """images for buttons all over BKChem"""
 
-import import_checker
-import os_support
-import Tkinter
+from __future__ import absolute_import
+from . import import_checker
+from . import os_support
+import six.moves.tkinter
 
 
 __all__ = ['images']
@@ -42,7 +43,7 @@ class images_dict( dict):
       return dict.__getitem__( self, item)
     except:
       try:
-        i = Tkinter.PhotoImage( file = os_support.get_path( item+'.gif', 'pixmap'))
+        i = six.moves.tkinter.PhotoImage( file = os_support.get_path( item+'.gif', 'pixmap'))
         self.__setitem__( item, i)
         return i
       except ValueError:
@@ -60,7 +61,7 @@ class images_dict( dict):
       return 1
     else:
       try:
-        self.__setitem__( item, Tkinter.PhotoImage( file = os_support.get_path( item+'.gif', 'pixmap')))
+        self.__setitem__( item, six.moves.tkinter.PhotoImage( file = os_support.get_path( item+'.gif', 'pixmap')))
         return 1
       except:
         #print "pixmap not found: " + item

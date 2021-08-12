@@ -23,8 +23,9 @@
 
 """CML2 import-export plugin"""
 
-import plugin
-import CML
+from __future__ import absolute_import
+from . import plugin
+from . import CML
 import xml.dom.minidom as dom
 import dom_extensions as dom_ext
 
@@ -160,7 +161,7 @@ class CML2_bond( CML.CML_bond):
         if self.order.lower() in types:
           self.order = types.index( self.order.lower()) + 1
         else:
-          raise plugin.import_exception, "unknown bond type %s" % self.order
+          raise plugin.import_exception("unknown bond type %s" % self.order)
     if cml.getAttribute( 'atomRefs2'):
       atoms = cml.getAttribute( 'atomRefs2').split( ' ')
       if len( atoms) == 2:

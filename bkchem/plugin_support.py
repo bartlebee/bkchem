@@ -17,13 +17,15 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
 import xml.dom.minidom as dom
-import dom_extensions as dom_ext
-import os_support
+from . import dom_extensions as dom_ext
+from . import os_support
 import os
-import debug
+from . import debug
 
-from singleton_store import Store
+from .singleton_store import Store
+import six
 
 
 
@@ -49,7 +51,7 @@ class plugin_manager( object):
           #except:
           #  debug.log( "could not load plugin file", name)
 
-    return self.plugins.keys()
+    return list(self.plugins.keys())
 
 
 
@@ -91,19 +93,19 @@ class plugin_manager( object):
       sys.path.append( dirname)
       the_globals = {'App': Store.app}
       try:
-        execfile( filename, the_globals)
+        exec(compile(open( filename, "rb").read(), filename, 'exec'), the_globals)
       finally:
         del sys.path[-1]
     else:
-      raise ValueError, "Wrong type of plugin %s" % name
+      raise ValueError("Wrong type of plugin %s" % name)
 
 
 
   def get_names( self, type=""):
     if not type:
-      return self.plugins.keys()
+      return list(self.plugins.keys())
     else:
-      return [k for k, v in self.plugins.iteritems() if v.type == type]
+      return [k for k, v in six.iteritems(self.plugins) if v.type == type]
     
 
   def get_description( self, name):

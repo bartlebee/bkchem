@@ -1,9 +1,11 @@
 # Python interface to some of the commands of the 2.4 version of the
 # BLT extension to tcl.
 
+from __future__ import absolute_import
 import string
 import types
-import Tkinter
+import six.moves.tkinter
+from six.moves import map
 
 # Supported commands:
 _busyCommand = '::blt::busy'
@@ -23,11 +25,11 @@ def _checkForBlt(window):
     # Blt may be a package which has not yet been loaded. Try to load it.
     try:
 	window.tk.call('package', 'require', 'BLT')
-    except Tkinter.TclError:
+    except six.moves.tkinter.TclError:
 	# Another way to try to dynamically load blt:
 	try:
 	    window.tk.call('load', '', 'Blt')
-	except Tkinter.TclError:
+	except six.moves.tkinter.TclError:
 	    pass
 
     _haveBlt= (window.tk.call('info', 'commands', _testCommand) != '')
@@ -46,9 +48,9 @@ def havebltbusy(window):
 def _loadBlt(window):
     if _haveBlt is None:
 	if window is None:
-	    window = Tkinter._default_root
+	    window = six.moves.tkinter._default_root
 	    if window is None:
-	    	window = Tkinter.Tk()
+	    	window = six.moves.tkinter.Tk()
 	_checkForBlt(window)
 
 def busy_hold(window, cursor = None):
@@ -75,12 +77,12 @@ def busy_forget(window):
 
 # Blt vector functions:
 def vector_expr(expression):
-    tk = Tkinter._default_root.tk
+    tk = six.moves.tkinter._default_root.tk
     strList = tk.splitlist(tk.call(_vectorCommand, 'expr', expression))
     return tuple(map(string.atof, strList))
 
 def vector_names(pattern = None):
-    tk = Tkinter._default_root.tk
+    tk = six.moves.tkinter._default_root.tk
     return tk.splitlist(tk.call(_vectorCommand, 'names', pattern))
 
 class Vector:
@@ -91,7 +93,7 @@ class Vector:
 	if master:
 	    self._master = master
 	else:
-	    self._master = Tkinter._default_root
+	    self._master = six.moves.tkinter._default_root
 	self.tk = self._master.tk
 	self._name = 'PY_VEC' + str(Vector._varnum)
 	Vector._varnum = Vector._varnum + 1
@@ -105,7 +107,7 @@ class Vector:
 	return self._name
 
     def __repr__(self):
-	return '[' + string.join(map(str, self), ', ') + ']'
+	return '[' + string.join(list(map(str, self)), ', ') + ']'
     def __cmp__(self, list):
 	return cmp(self[:], list)
 
@@ -117,8 +119,8 @@ class Vector:
 	    key = key + len(self)
 	try:
 	    return self.tk.getdouble(self.tk.globalgetvar(self._name, str(key)))
-        except Tkinter.TclError:
-	    raise IndexError, oldkey
+        except six.moves.tkinter.TclError:
+	    raise IndexError(oldkey)
     def __setitem__(self, key, value): 
 	if key < 0:
 	    key = key + len(self)
@@ -139,7 +141,7 @@ class Vector:
 	    return []
 	end = end - 1  # Blt vector slices include end point.
 	text = self.tk.globalgetvar(self._name, str(start) + ':' + str(end))
-	return map(self.tk.getdouble, self.tk.splitlist(text))
+	return list(map(self.tk.getdouble, self.tk.splitlist(text)))
 
     def __setslice__(self, start, end, list):
 	if start > end:
@@ -192,12 +194,12 @@ class Vector:
 	# Note that, unlike self[first:last], this includes the last
 	# item in the returned range.
 	text = self.tk.call(self._name, 'range', first, last)
-	return map(self.tk.getdouble, self.tk.splitlist(text))
+	return list(map(self.tk.getdouble, self.tk.splitlist(text)))
     def search(self, start, end=None):
 	return self._master._getints(self.tk.call(
 		self._name, 'search', start, end))
     def set(self, list):
-	if type(list) != types.TupleType:
+	if type(list) != tuple:
 	    list = tuple(list)
 	self.tk.call(self._name, 'set', list)
 
@@ -242,7 +244,7 @@ def _doConfigure(widget, subcommand, option, kw):
         if kw:
             # Having keywords implies setting configuration options.
             # Can't set and get in one command!
-            raise ValueError, 'cannot have option argument with keywords'
+            raise ValueError('cannot have option argument with keywords')
         option = '-' + option
         optionInfo = widget.tk.splitlist(widget.tk.call(subcommand + (option,)))
         return (optionInfo[0][1:],) + optionInfo[1:]
@@ -252,12 +254,12 @@ def _doConfigure(widget, subcommand, option, kw):
 
 #=============================================================================
 
-class Graph(Tkinter.Widget):
+class Graph(six.moves.tkinter.Widget):
     # Wrapper for the blt graph widget, version 2.4.
 
     def __init__(self, master=None, cnf={}, **kw):
 	_loadBlt(master)
-	Tkinter.Widget.__init__(self, master, _graphCommand, cnf, kw)
+	six.moves.tkinter.Widget.__init__(self, master, _graphCommand, cnf, kw)
 
     def bar_create(self, name, **kw):
 	self.tk.call((self._w, 'bar', 'create', name) + self._options(kw))
@@ -285,7 +287,7 @@ class Graph(Tkinter.Widget):
 	return self.tk.call(self._w, 'axis', 'cget', axisName, '-' + key)
     def axis_configure(self, axes, option=None, **kw):
         # <axes> may be a list of axisNames.
-	if type(axes) == types.StringType:
+	if type(axes) == bytes:
             axes = [axes]
 	subcommand = (self._w, 'axis', 'configure') + tuple(axes)
 	return _doConfigure(self, subcommand, option, kw)
@@ -413,7 +415,7 @@ class Graph(Tkinter.Widget):
 
     def element_configure(self, names, option=None, **kw):
         # <names> may be a list of elemNames.
-	if type(names) == types.StringType:
+	if type(names) == bytes:
             names = [names]
 	subcommand = (self._w, 'element', 'configure') + tuple(names)
 	return _doConfigure(self, subcommand, option, kw)
@@ -475,7 +477,7 @@ class Graph(Tkinter.Widget):
 	return self.tk.call(self._w, 'pen', 'cget', name, '-' + key)
     def pen_configure(self, names, option=None, **kw):
         # <names> may be a list of penNames.
-	if type(names) == types.StringType:
+	if type(names) == bytes:
             names = [names]
 	subcommand = (self._w, 'pen', 'configure') + tuple(names)
 	return _doConfigure(self, subcommand, option, kw)
@@ -514,7 +516,7 @@ class Graph(Tkinter.Widget):
 	return self.tk.call(self._w, 'marker', 'cget', name, '-' + key)
     def marker_configure(self, names, option=None, **kw):
         # <names> may be a list of markerIds.
-	if type(names) == types.StringType:
+	if type(names) == bytes:
             names = [names]
 	subcommand = (self._w, 'marker', 'configure') + tuple(names)
 	return _doConfigure(self, subcommand, option, kw)
@@ -542,16 +544,16 @@ class Stripchart(Graph):
 
     def __init__(self, master=None, cnf={}, **kw):
 	_loadBlt(master)
-	Tkinter.Widget.__init__(self, master, _chartCommand, cnf, kw)
+	six.moves.tkinter.Widget.__init__(self, master, _chartCommand, cnf, kw)
 
 #=============================================================================
-class Tabset(Tkinter.Widget): 
+class Tabset(six.moves.tkinter.Widget): 
 
     # Wrapper for the blt TabSet widget, version 2.4.
 
     def __init__(self, master=None, cnf={}, **kw):
 	_loadBlt(master)
-	Tkinter.Widget.__init__(self, master, _tabsetCommand, cnf, kw)
+	six.moves.tkinter.Widget.__init__(self, master, _tabsetCommand, cnf, kw)
 
     def activate(self, tabIndex):
         self.tk.call(self._w, 'activate', tabIndex)
@@ -619,7 +621,7 @@ class Tabset(Tkinter.Widget):
 
     def tab_configure(self, tabIndexes, option=None, **kw):
         # <tabIndexes> may be a list of tabs.
-	if type(tabIndexes) in (types.StringType, types.IntType):
+	if type(tabIndexes) in (bytes, int):
             tabIndexes = [tabIndexes]
 	subcommand = (self._w, 'tab', 'configure') + tuple(tabIndexes)
 	return _doConfigure(self, subcommand, option, kw)

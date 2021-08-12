@@ -23,25 +23,26 @@
 
 """the Splash class resides here"""
 
-import Tkinter
-import messages
-import os_support
+from __future__ import absolute_import
+import six.moves.tkinter
+from . import messages
+from . import os_support
 
-class Splash( Tkinter.Toplevel):
+class Splash( six.moves.tkinter.Toplevel):
 
   def __init__( self):
-    Tkinter.Toplevel.__init__( self)
+    six.moves.tkinter.Toplevel.__init__( self)
 
     self.title(_('BKChem is starting...'))
 
     # splash image
     splash_image_path = 'logo.ppm'
     try:
-      self.splash_image = Tkinter.PhotoImage( file = os_support.get_path( splash_image_path, 'image'))
+      self.splash_image = six.moves.tkinter.PhotoImage( file = os_support.get_path( splash_image_path, 'image'))
     except:
       self.splash_image = None
 
-    text = Tkinter.Label( self,
+    text = six.moves.tkinter.Label( self,
                           font=('Helvetica', 12, 'normal'),
                           relief = 'raised',
                           borderwidth = 2,

@@ -20,8 +20,10 @@
 """The Store class which is a manager for application wide singletons resides here"""
 
 
+from __future__ import absolute_import
 import types
-import misc
+from . import misc
+from six.moves import map
 
 
 
@@ -91,7 +93,7 @@ class Screen:
     x = point.getAttribute( 'x')
     y = point.getAttribute( 'y')
     z = point.getAttribute( 'z')
-    return map( self.any_to_px, (x,y,z))
+    return list(map( self.any_to_px, (x,y,z)))
 
   read_xml_point = classmethod( read_xml_point)
 
@@ -99,7 +101,7 @@ class Screen:
     
 
   def any_to_px( self, xyz):
-    if type( xyz) == types.TupleType or type( xyz) == types.ListType:
+    if type( xyz) == tuple or type( xyz) == list:
       return [self.any_to_px( i) for i in xyz]
     a, au = misc.split_number_and_unit( xyz)
     if au:
@@ -131,7 +133,7 @@ class Screen:
 
   def px_to_unit( self, xyz, unit='cm', round_to=3):
     # handle sets of values
-    if type( xyz) == types.TupleType or type( xyz) == types.ListType:
+    if type( xyz) == tuple or type( xyz) == list:
       return [self.px_to_unit( i, unit=unit, round_to=round_to) for i in xyz]
     # handle empty queries
     if xyz == None:
@@ -159,7 +161,7 @@ class Screen:
 
   def px_to_text_with_unit( self, xyz, unit='cm', round_to=3):
     # handle sets of values
-    if type( xyz) == types.TupleType or type( xyz) == types.ListType:    
+    if type( xyz) == tuple or type( xyz) == list:    
       return [self.px_to_text_with_unit( i, unit=unit, round_to=round_to) for i in xyz]
     # round or not round and return
     if round_to == None:

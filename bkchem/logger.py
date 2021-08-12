@@ -19,8 +19,10 @@
 
 
 
-import tkMessageBox
-from singleton_store import Store
+from __future__ import absolute_import
+from __future__ import print_function
+import six.moves.tkinter_messagebox
+from .singleton_store import Store
 import sys
 
 
@@ -54,7 +56,7 @@ class logger:
     """message_type is one of (info, warning, error, debug, hint),
     delay means the amount of time for which the text should be visible (for 'status-bar' only)""" 
     if message_type not in logger.type_to_text:
-      raise ValueError, "unknown message type %s" % message_type
+      raise ValueError("unknown message type %s" % message_type)
 
     handle = self.handling[ message_type]
     self.__class__.__dict__['log_to_'+handle]( self, message, message_type=message_type, delay=delay)
@@ -69,22 +71,22 @@ class logger:
 
 
   def log_to_console( self, message, message_type="info", delay=4):
-    print >> sys.stderr, self.type_to_text[ message_type]+":", message
+    print(self.type_to_text[ message_type]+":", message, file=sys.stderr)
 
 
     
   def log_to_dialog( self, message, message_type="info", delay=4): 
     heading = self.type_to_text[ message_type]
     if message_type == "error":
-      tkMessageBox.showerror( heading, message)
+      six.moves.tkinter_messagebox.showerror( heading, message)
     elif message_type == "warning":
-      tkMessageBox.showwarning( heading, message)
+      six.moves.tkinter_messagebox.showwarning( heading, message)
     elif message_type == "info":
-      tkMessageBox.showinfo( heading, message)
+      six.moves.tkinter_messagebox.showinfo( heading, message)
     elif message_type == "debug":
-      tkMessageBox.showinfo( heading, message)
+      six.moves.tkinter_messagebox.showinfo( heading, message)
     elif message_type == "hint":
-      tkMessageBox.showinfo( heading, message)
+      six.moves.tkinter_messagebox.showinfo( heading, message)
       
 
   def set_handling( self, what, how):

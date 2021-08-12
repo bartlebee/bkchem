@@ -23,34 +23,39 @@
 from __future__ import division
 from __future__ import generators
 
+from __future__ import absolute_import
 from math import atan2, sin, cos, pi, sqrt
 import operator
-import misc
+from . import misc
 import time
-from oasa import geometry
+from .oasa import geometry
 from warnings import warn
-import dom_extensions
+from . import dom_extensions
 import xml.dom.minidom as dom
-from oasa import periodic_table as PT
-import groups_table as GT
+from .oasa import periodic_table as PT
+from . import groups_table as GT
 import copy
-import helper_graphics as hg
-from parents import container, top_level, id_enabled, with_paper
-from bond import bond
-from atom import atom
-from group import group
-from textatom import textatom
-from queryatom import queryatom
-from fragment import fragment
-import bkchem_exceptions
+from . import helper_graphics as hg
+from .parents import container, top_level, id_enabled, with_paper
+from .bond import bond
+from .atom import atom
+from .group import group
+from .textatom import textatom
+from .queryatom import queryatom
+from .fragment import fragment
+from . import bkchem_exceptions
 
 
 
 
 
-import oasa
+from . import oasa
 
-from singleton_store import Store, Screen
+from .singleton_store import Store, Screen
+import six
+from six.moves import map
+from six.moves import range
+from functools import reduce
 
 
 
@@ -271,7 +276,7 @@ class molecule( container, top_level, id_enabled, oasa.molecule, with_paper):
         [o.redraw() for o in self.atoms]
     else:
       offspring = self.check_integrity()
-      deleted += map( self.delete_bond, copy.copy( self.bonds))
+      deleted += list(map( self.delete_bond, copy.copy( self.bonds)))
     return deleted, offspring
 
   def delete_bond( self, item):
@@ -331,7 +336,7 @@ class molecule( container, top_level, id_enabled, oasa.molecule, with_paper):
     self.name = package.getAttribute( 'name')
     if package.getAttribute( 'id'):
       self.id = package.getAttribute( 'id')
-    for name, cls in {'atom':atom, 'group':group, 'text': textatom, 'query': queryatom}.iteritems():
+    for name, cls in six.iteritems({'atom':atom, 'group':group, 'text': textatom, 'query': queryatom}):
       for a in dom_extensions.simpleXPathSearch( package, name):
         self.insert_atom( cls( standard=std, package=a, molecule=self))
       
@@ -581,7 +586,7 @@ class molecule( container, top_level, id_enabled, oasa.molecule, with_paper):
 
 
   def flush_graph_to_file( self, name="/home/beda/oasa/oasa/mol.graph"):
-    f = file( name, 'w')
+    f = open( name, 'w')
     for a in self.atoms:
       f.write('%s ' % a.symbol)
     f.write('\n')
@@ -700,7 +705,7 @@ class molecule( container, top_level, id_enabled, oasa.molecule, with_paper):
     """checks the consistency of a linear_form - returns either True (consistent) or
     False (inconsistent).
     Consistent fragments are automatically redrawn"""
-    import interactors
+    from . import interactors
     if f.type == "linear_form":
       if f.edges - self.edges or f.vertices - set( self.vertices):
         # something from the fragment was deleted
@@ -739,11 +744,11 @@ class molecule( container, top_level, id_enabled, oasa.molecule, with_paper):
         self.t_bond_first = b.atom2
         self.t_bond_second = b.atom1
     else:
-      raise ValueError, "submitted bond does not belong to this molecule"
+      raise ValueError("submitted bond does not belong to this molecule")
 
 
   def mark_template_atom( self, v):
     if v in self.vertices:
       self.t_atom = v
     else:
-      raise ValueError, "submitted atom does not belong to this molecule"
+      raise ValueError("submitted atom does not belong to this molecule")

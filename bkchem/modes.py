@@ -20,46 +20,51 @@
 
 """the modes in which the paper operates (such as edit, draw etc.) reside here"""
 
-import misc
+from __future__ import absolute_import
+from . import misc
 from warnings import warn
 import operator
-from oasa import geometry
+from .oasa import geometry
 import math
+import six
+from six.moves import map
+from six.moves import range
+from functools import reduce
 try:
-  from oasa.oasa.transform import transform 
-  from oasa.oasa.transform3d import transform3d
+  from .oasa.oasa.transform import transform 
+  from .oasa.oasa.transform3d import transform3d
 except ImportError:
-  from oasa.transform import transform
-  from oasa.transform3d import transform3d
+  from .oasa.transform import transform
+  from .oasa.transform3d import transform3d
 import time
-import data
-import config
+from . import data
+from . import config
 import string
-import dialogs
+from . import dialogs
 import xml.sax, xml.sax.saxutils
-import tkMessageBox
-import helper_graphics as hg
-import dom_extensions
-import messages
-from bond import bond
-from atom import atom
-from group import group
-from textatom import textatom
-from context_menu import context_menu
-from reaction import reaction
-import parents, special_parents
-import oasa
-import Pmw, Tkinter
-from oasa import periodic_table as PT
-import external_data
+import six.moves.tkinter_messagebox
+from . import helper_graphics as hg
+from . import dom_extensions
+from . import messages
+from .bond import bond
+from .atom import atom
+from .group import group
+from .textatom import textatom
+from .context_menu import context_menu
+from .reaction import reaction
+from . import parents, special_parents
+from . import oasa
+import Pmw, six.moves.tkinter
+from .oasa import periodic_table as PT
+from . import external_data
 
-import interactors
-import marks
+from . import interactors
+from . import marks
 import types
-from arrow import arrow
-from ftext import ftext
+from .arrow import arrow
+from .ftext import ftext
 
-from singleton_store import Store, Screen
+from .singleton_store import Store, Screen
 
 
 
@@ -165,7 +170,7 @@ class mode( object):
   def get_submode( self, i):
     if i < len( self.submodes):
       return self.submodes[i][ self.submode[i]]
-    raise ValueError, "invalid submode index"
+    raise ValueError("invalid submode index")
 
   def set_submode( self, name):
     for sms in self.submodes:
@@ -329,8 +334,8 @@ class basic_mode( simple_mode):
     self.register_key_sequence( 'C-o C-b', lambda : Store.app.paper.lower_selected_to_bottom())
     self.register_key_sequence( 'C-o C-s', lambda : Store.app.paper.swap_selected_on_stack())
     # mode switching
-    self.register_key_sequence_ending_with_number_range( 'C-', self.switch_mode, numbers=range(1,10))
-    self.register_key_sequence_ending_with_number_range( 'C-A-', self.switch_mode, numbers=range(1,10), attrs={"add":9})
+    self.register_key_sequence_ending_with_number_range( 'C-', self.switch_mode, numbers=list(range(1,10)))
+    self.register_key_sequence_ending_with_number_range( 'C-A-', self.switch_mode, numbers=list(range(1,10)), attrs={"add":9})
 
   def undo( self):
     Store.app.paper.undo()
@@ -389,7 +394,7 @@ class edit_mode( basic_mode):
     self.register_key_sequence( 'C-k', lambda : Store.app.paper.selected_to_clipboard( delete_afterwards=1))
     # 'C-a' from windoze is in use - 'C-S-a' instead
     # chains (C-d as draw)
-    self.register_key_sequence_ending_with_number_range( 'C-d', self.add_chain, numbers=range(2,10))
+    self.register_key_sequence_ending_with_number_range( 'C-d', self.add_chain, numbers=list(range(2,10)))
 
     # config
     self.rectangle_selection = True  # this can be overriden by children
@@ -629,9 +634,8 @@ class edit_mode( basic_mode):
 
 
   def _end_of_empty_drag( self, x1, y1, x2, y2):
-    Store.app.paper.select( filter( lambda o: o,\
-                                    map( Store.app.paper.id_to_object,\
-                                         Store.app.paper.find_enclosed( x1, y1, x2, y2))))
+    Store.app.paper.select( [o for o in map( Store.app.paper.id_to_object,\
+                                         Store.app.paper.find_enclosed( x1, y1, x2, y2)) if o])
 
 
 
@@ -678,7 +682,7 @@ class edit_mode( basic_mode):
 	name = Store.app.editPool.activate()
       if not name or dom_extensions.isOnlyTags( name):
         return
-      name = unicode( name).encode('utf-8')
+      name = six.text_type( name).encode('utf-8')
       self.set_given_name_to_selected( name, interpret=Store.app.editPool.interpret)
 
 
@@ -1230,7 +1234,7 @@ class text_mode( edit_mode):
       name = Store.app.editPool.activate()
       if not name:
         return
-      name = unicode( name).encode( 'utf-8')
+      name = six.text_type( name).encode( 'utf-8')
       # there is either something selected or a new thing is added
       # the unselecting code before does ensure that nothing is selected
       # when we click outside to create something new
@@ -1312,9 +1316,9 @@ class rotate_mode( edit_mode):
       self._centery = y1+(y2-y1)/2.0
     elif self.focused:
       if self.get_submode(0) == '3D':
-        tkMessageBox.showerror( _("You can only rotate molecules in 3D!"), _("Sorry but you can only rotate molecules in 3D."))
+        six.moves.tkinter_messagebox.showerror( _("You can only rotate molecules in 3D!"), _("Sorry but you can only rotate molecules in 3D."))
       else:
-        tkMessageBox.showerror( _("You can only rotate molecules and arrows in 2D!"), _("Sorry but you can only rotate molecules and arrows in 2D."))
+        six.moves.tkinter_messagebox.showerror( _("You can only rotate molecules and arrows in 2D!"), _("Sorry but you can only rotate molecules and arrows in 2D."))
 
     
   def mouse_up( self, event):
@@ -1854,7 +1858,7 @@ class atom_mode( edit_mode):
       name = Store.app.editPool.activate()
       if not name:
         return
-      name = unicode( name).encode( 'utf-8')
+      name = six.text_type( name).encode( 'utf-8')
       if name and not dom_extensions.isOnlyTags( name):
         mol = Store.app.paper.new_molecule()
         a = mol.create_vertex_according_to_text( None, name, interpret=Store.app.editPool.interpret)
@@ -1918,7 +1922,7 @@ class reaction_mode( basic_mode):
   def mouse_down( self, event, modifiers=[]):
     if self.focused:
       if not self.arrow:
-        tkMessageBox.showerror( _("No arrow present"),
+        six.moves.tkinter_messagebox.showerror( _("No arrow present"),
                                 _("""The reaction information in BKChem are associated with arrows, therefore you have to have at least one arrow before you can construct any reaction."""))
         return
 
@@ -2082,7 +2086,7 @@ class external_data_mode( basic_mode):
 
   def _get_active_entry( self):
     e = Store.app.focus_get()
-    if e in self._entries.values() and e.type_class == "reference":
+    if e in list(self._entries.values()) and e.type_class == "reference":
       return e
 
 
@@ -2097,7 +2101,7 @@ class external_data_mode( basic_mode):
   def _populate_table_for_active_object( self):
     defs = Store.app.paper.edm.get_definitions_for_class_and_type( self.get_submode( 1), self.get_submode( 0))
     if defs:
-      for k,v in defs.iteritems():
+      for k,v in six.iteritems(defs):
         val = Store.app.paper.edm.get_data( self.get_submode( 1), self._active_object, k)
         if hasattr( val, 'id'):
           self._entries[ k].value = val.id
@@ -2122,7 +2126,7 @@ class external_data_mode( basic_mode):
   def _set_data( self):
     defs = Store.app.paper.edm.get_definitions_for_class_and_type( self.get_submode( 1), self.get_submode( 0))
     if defs:
-      for k,v in defs.iteritems():
+      for k,v in six.iteritems(defs):
         val = self._entries[ k].value
         if val != '':
           if v['type'] in Store.app.paper.edm.reference_types:
@@ -2141,15 +2145,15 @@ class external_data_mode( basic_mode):
   def _show_table_for_submode( self):
     defs = Store.app.paper.edm.get_definitions_for_class_and_type( self.get_submode( 1), self.get_submode( 0))
     if defs:
-      self._frame = Tkinter.Frame( Store.app.paper)
+      self._frame = six.moves.tkinter.Frame( Store.app.paper)
       self._win = Store.app.paper.create_window( 500, 100, window=self._frame)
-      for k,v in defs.iteritems():
-        label = Tkinter.Label( self._frame, text=v['text'])
+      for k,v in six.iteritems(defs):
+        label = six.moves.tkinter.Label( self._frame, text=v['text'])
         if v['type'] in Store.app.paper.edm.reference_types:
           entry = external_data.ExternalDataEntry( self._frame, v['type'], "reference")
           entry.bind( "<FocusIn>", lambda e: self._entry_entered( e.widget))
           entry.bind( "<FocusOut>", lambda e: self._entry_left())
-        elif type( v['type']) == types.ListType:
+        elif type( v['type']) == list:
           entry = external_data.ExternalDataListSelection( self._frame, v['type'])
         else:
           entry = external_data.ExternalDataEntry( self._frame, v['type'], "internal")
@@ -2157,7 +2161,7 @@ class external_data_mode( basic_mode):
         self._entries[ k] = entry
         label.pack()
         entry.pack()
-      Tkinter.Button( self._frame, text=_("Set"), command=self._set_data).pack()
+      six.moves.tkinter.Button( self._frame, text=_("Set"), command=self._set_data).pack()
     
 
   def _draw_the_arrows( self):

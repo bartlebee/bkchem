@@ -24,6 +24,7 @@
 """module containing miscelanous functions used in BKChem that don't
 fit anywhere else. Does not contain any objects"""
 
+from __future__ import absolute_import
 import math
 import time
 import string
@@ -31,6 +32,9 @@ from warnings import warn
 import re
 import types
 import base64
+from six.moves import map
+from six.moves import range
+from six.moves import zip
 
 
 def intersection( a, b):
@@ -191,11 +195,11 @@ def set_attr_or_property( obj, name, value):
 
 # some helper, higher order functions
 
-map_functions = lambda funcs, value: zip( apply, funcs, len(funcs)*[value])
+map_functions = lambda funcs, value: list(zip( apply, funcs, len(funcs)*[value]))
 
-something_true = lambda vals: len( filter( None, vals))
+something_true = lambda vals: len( [_f for _f in vals if _f])
 
-some_apply = lambda func, vals: something_true( map( func, vals))
+some_apply = lambda func, vals: something_true( list(map( func, vals)))
 
 
 

@@ -23,7 +23,8 @@
 
 """set of helper graphics items such as selection rects etc."""
 
-import misc
+from __future__ import absolute_import
+from . import misc
 import copy
 
 class selection_rect:

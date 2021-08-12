@@ -22,19 +22,22 @@
 from __future__ import division
 from __future__ import generators
 
-from classes import point
+from __future__ import absolute_import
+from .classes import point
 from warnings import warn
-import dom_extensions
+from . import dom_extensions
 import xml.dom.minidom as dom
 import operator
-from parents import meta_enabled, container, with_line, line_colored
-from parents import point_drawable, interactive, drawable, top_level
-from reaction import reaction
-from singleton_store import Screen
-from oasa import geometry
-import misc
+from .parents import meta_enabled, container, with_line, line_colored
+from .parents import point_drawable, interactive, drawable, top_level
+from .reaction import reaction
+from .singleton_store import Screen
+from .oasa import geometry
+from . import misc
 
-import debug
+from . import debug
+from six.moves import map
+from functools import reduce
 
 ##-------------------- ARROW CLASS ------------------------------
 
@@ -127,8 +130,8 @@ class arrow( meta_enabled, drawable, with_line, line_colored, container, interac
     
   def redraw( self):
     if self.items:
-      map( self.paper.unregister_id, self.items)
-      map( self.paper.delete, self.items)
+      list(map( self.paper.unregister_id, self.items))
+      list(map( self.paper.delete, self.items))
     self.draw()
 
   def focus( self):
@@ -171,8 +174,8 @@ class arrow( meta_enabled, drawable, with_line, line_colored, container, interac
   def delete( self):
     [p.delete() for p in self.points]
     self.points = []
-    map( self.paper.unregister_id, self.items)
-    map( self.paper.delete, self.items)
+    list(map( self.paper.unregister_id, self.items))
+    list(map( self.paper.delete, self.items))
     self.items = []
 
   def is_empty_or_single_point( self):
@@ -252,7 +255,7 @@ class arrow( meta_enabled, drawable, with_line, line_colored, container, interac
 
   def lift( self):
     if self.items:
-      map( self.paper.lift, self.items)
+      list(map( self.paper.lift, self.items))
     [o.lift() for o in self.points]
 
 
@@ -265,7 +268,7 @@ class arrow( meta_enabled, drawable, with_line, line_colored, container, interac
   # -- private drawing methods for different arrow types --
   
   def _draw_normal_old( self):
-    ps = reduce( operator.add, map( lambda b: b.get_xy(), self.points))
+    ps = reduce( operator.add, [b.get_xy() for b in self.points])
     item = self.paper.create_line( ps, tags='arrow', arrow=self._pins[ self.pin], arrowshape=self.shape,\
                                    width=self.line_width, smooth=self.spline, fill=self.line_color)
     return [item]
